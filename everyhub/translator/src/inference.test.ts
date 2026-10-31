@@ -16,7 +16,7 @@ test("uses one shared worker and deletes the transient speech result after retri
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "everyhub-api-test-"));
     const calls: { url: string; options?: RequestInit }[] = [];
     const results = [
-        { translatedText: "Hallo" },
+        { translatedText: "Hallo", detectedLanguage: "en", skipped: false },
         { token: "test-owner-credential" },
         { id: "speech-job" },
         { status: "complete", text: "Spoken words", detected_language: "en" },
@@ -29,7 +29,12 @@ test("uses one shared worker and deletes the transient speech result after retri
     });
     try {
         const api = new Inference("http://shared:8000", "matrix-test-key", path.join(directory, "credential"));
-        assert.equal(await api.translate("Hello", "en", "de"), "Hallo");
+        assert.deepEqual(await api.translate("Hello", "auto", "de"), {
+            translatedText: "Hallo",
+            detectedLanguage: "en",
+            skipped: false,
+        });
+        assert.equal(JSON.parse(calls[0].options?.body as string).source, "auto");
         assert.deepEqual(await api.transcribe(Buffer.from("audio")), { text: "Spoken words", language: "en" });
         assert.ok(calls.every((call) => call.url.startsWith("http://shared:8000/")));
         assert.equal(calls[4].options?.method, "DELETE");
@@ -57,6 +62,54 @@ test("cancels a failed speech job instead of retaining a second copy", async (t)
         const api = new Inference("http://shared:8000", "matrix-test-key", file);
         await assert.rejects(api.transcribe(Buffer.from("audio")), /No speech/);
         assert.equal(methods.at(-1), "DELETE");
+    } finally {
+        fs.rmSync(directory, { recursive: true });
+    }
+});
+
+test("preserves same-language skip results and rejects malformed or empty translations", async (t) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "everyhub-api-test-"));
+    try {
+        const api = new Inference("http://shared:8000", "test-key", path.join(directory, "credential"));
+        const skip = { translatedText: "", detectedLanguage: "en", skipped: true };
+        t.mock.method(globalThis, "fetch", async () => Response.json(skip));
+        assert.deepEqual(await api.translate("Already English", "auto", "en"), skip);
+        for (const result of [
+            { translatedText: "Hello" },
+            { translatedText: "", detectedLanguage: "ru", skipped: false },
+        ]) {
+            t.mock.method(globalThis, "fetch", async () => Response.json(result));
+            await assert.rejects(api.translate("Привет", "auto", "en"), /Invalid translation/);
+        }
+    } finally {
+        fs.rmSync(directory, { recursive: true });
+    }
+});
+
+test("fetches authenticated runtime configuration and sends room-only settings on translation", async (t) => {
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), "everyhub-api-test-"));
+    const calls: { url: string; options?: RequestInit }[] = [];
+    const config = {
+        model: "Installed model",
+        defaultTemperature: 0,
+        maxTemperature: 1,
+        maxInstructions: 1600,
+        promptTemplate: "{text}",
+    };
+    t.mock.method(globalThis, "fetch", async (url: string, options?: RequestInit) => {
+        calls.push({ url, options });
+        return Response.json(
+            url.endsWith("/config") ? config : { translatedText: "Hello", detectedLanguage: "ru", skipped: false },
+        );
+    });
+    try {
+        const api = new Inference("http://shared:8000", "test-key", path.join(directory, "credential"));
+        assert.deepEqual(await api.modelConfiguration(), config);
+        assert.equal((calls[0].options?.headers as Record<string, string>)["X-Matrix-Translation-Key"], "test-key");
+        await api.translate("Привет", "auto", "en", { temperature: 0.2, instructions: "Be informal." });
+        const body = JSON.parse(calls[1].options?.body as string);
+        assert.equal(body.temperature, 0.2);
+        assert.equal(body.instructions, "Be informal.");
     } finally {
         fs.rmSync(directory, { recursive: true });
     }

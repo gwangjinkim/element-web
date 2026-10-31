@@ -28,53 +28,81 @@ It becomes a recipient of the encrypted room. It can read messages in that room.
 Its replies are visible to **everyone in that room**, rather than privately replacing one person's timeline.
 Original messages remain available. It does not read rooms it has not joined.
 
-For an English/Russian conversation:
+Choose one language that everyone should understand, for example English:
 
-| Participant                                                                | Send once in that conversation |
-| -------------------------------------------------------------------------- | ------------------------------ |
-| English speaker                                                            | `!language en`                 |
-| Russian speaker                                                            | `!language ru`                 |
-| Either participant wants both texts for learning                           | `!learn on`                    |
-| Either participant wants transcripts of their own recordings automatically | `!transcribe on`               |
+```text
+!target english
+!auto on
+!learn on
+```
 
-After this setup, English messages receive Russian translations and Russian messages receive English translations.
-Learning mode includes the original and translated text in the assistant's reply for that participant's language.
-If several people use the same target language, one reply is shared; the original is included if any of them enables learning.
-Settings are per user, per room, and survive a bot restart. Participants cannot change each other's choices.
-People who have left the room are excluded when choosing translation targets.
+`!target en` and `!target english` mean the same thing. The target, automatic translation switch, and learning
+mode are **shared by the room**. Anyone in the room can change them. Every participant's new text messages
+are detected and translated into that target, including messages from people who have never configured the bot.
+Messages already in the target language receive no translation reply. Learning mode repeats the original with
+the translation; original messages remain in the timeline in either mode.
 
-Additional commands:
+`!lang auto` is the default source setting for new participants. Use `!lang ru` or `!lang russian` to force
+**your own** source language in this room, and `!lang auto` to restore detection. Short messages, names,
+transliteration and mixed-language messages can be ambiguous. Detection applies to the whole message;
+a high-confidence match with the target is skipped. This is a shared-target mode, so English targets do not
+also produce Russian replies for English messages. Change the target when the conversation needs another language.
 
-- `!bot off` / `!bot on`: silence/resume all translations and transcripts for the whole conversation.
-  Any participant can use this switch. Language choices are preserved, and the switch survives a restart.
-  While off, only `!bot`, `!help`, and `!settings` receive responses; manual translation/transcription is paused too.
-  Work queued before switching off is discarded. A model request already running may finish, but its result is suppressed.
-  Resuming processes new messages only; it does not translate messages sent while off.
-- `!auto off` / `!auto on`: turn automatic translations into your language off/on.
-- `!learn off` / `!learn on`: change learning mode.
-- `!transcribe off` / `!transcribe on`: change automatic transcription of your own recorded voice/video messages.
-- Reply to a voice/video attachment with `!transcribe` for a one-time transcript, even without automatic mode.
-- `!translate en ru Hello`: translate a single text; or reply to text with `!translate ru en`.
-- `!settings`: show your current choices; `!forget`: delete your room preferences; `!help`: command reference.
+Bare `!auto`, `!learn`, and `!bot` toggle their current state and confirm the resulting on/off status.
+Explicit `on`/`off` sets a state without toggling it. `!help` is a compact two-column reminder. `!help details` shows the full operating rules.
 
-Initial language codes: `en`, `de`, `ko`, `uk`, `ru`, `pl`, `el`.
-The chosen language is used for both writing and reading text. Set it to the language you use in that conversation.
-Speech transcription detects the recording's language automatically.
-Text translation supports 3,000 characters per message. Longer transcripts remain readable, but are not automatically translated.
-Recordings are limited to 20 MiB and 10 minutes. Live calls are not recorded or transcribed.
+Commands:
+
+| Command                                                    | Scope and effect                                                                    |
+| ---------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `!target en` / `!target english`                           | Shared target language for the room                                                 |
+| `!auto on` / `!auto off`                                   | Enable/pause automatic translations for the whole room                              |
+| `!learn on` / `!learn off`                                 | Include/omit a repeated original in translation replies for the room                |
+| `!lang en` / `!lang english` / `!lang auto`                | Your own source override or automatic detection                                     |
+| `!bot off` / `!bot on`                                     | Pause/resume all automatic and manual translations **and transcripts** for the room |
+| `!transcribe on` / `!transcribe off`                       | Opt in/out of automatic transcripts of **your own** voice/video uploads             |
+| Reply with `!transcribe`                                   | One-time transcript of that voice/video message                                     |
+| `!translate auto en text`                                  | One-time translation, with source detection                                         |
+| `!translate ru english text`                               | One-time translation with an explicit source                                        |
+| Reply with `!translate auto en`                            | Translate the replied-to text once                                                  |
+| `!model`                                                   | Show installed model and room model settings                                        |
+| `!temperature` / `!temperature 0.2` / `!temperature reset` | Show/set/reset sampling (0–1; default 0)                                            |
+| `!prompt`                                                  | Show the actual current prompt template and room-specific additions                 |
+| `!prompt add TEXT` / `!prompt set TEXT` / `!prompt reset`  | Append/replace/reset this room's custom instructions (up to 1,600 characters)       |
+| `!settings`                                                | Show shared room settings and your own source/transcription choices                 |
+| `!forget`                                                  | Remove your own source/transcription choices; shared settings remain                |
+| `!help` / `!help details`                                   | Reminder / full rules                                                                   |
+
+Codes and English language names are case-insensitive. The model's full 150-entry inventory, including script
+variants, is in `translator/src/languages.json`; it is taken from the technical report's Appendix C.
+Initial requested languages are all covered: English `en`, German `de`, Korean `ko`, Ukrainian `uk`,
+Russian `ru`, Polish `pl`, and Greek `el`. A legacy `!language` command aliases `!lang`.
+Legacy saved source/transcription settings and the room silencer survive upgrades; each room must explicitly
+choose its new shared target with `!target`. Old per-recipient translation settings do not invent a room target.
+
+Room settings survive restarts. A room control change invalidates queued/in-flight translations, so old results
+are suppressed. While `!bot off`, `!bot`, `!help`, `!settings`, `!model`, `!prompt`, and `!temperature` respond.
+Model instructions and temperature are applied per request, not as mutable global model settings.
+The base translation rules remain; `!prompt set` replaces the room-specific additions. Use English instructions
+such as `!prompt add Use friendly, informal language.` Higher temperatures add variety and can reduce fidelity.
+Any participant can inspect/change these shared room settings. Custom instructions are saved as configuration,
+and no message history is added to the prompt. The default template uses Chinese to match the model authors'
+inference recipe; `!prompt` shows the exact user-prompt template with placeholders. Resuming handles new messages only.
+Text translation supports 3,000 characters per message. Longer transcripts remain readable, but are not automatically
+translated. Recordings are limited to 20 MiB and 10 minutes. Live calls are not recorded or transcribed.
 Names, numbers, times, and meaning can be mistranslated; this is a language aid rather than an accuracy guarantee.
 
 ## One shared inference service
 
 The Matrix assistant contains **no model** and launches no inference subprocess.
 It uses the existing server API, which also serves the Telegram utility bot, with one loaded copy of Whisper small
-for speech and one M2M100 text model. These are distinct tasks; consolidating them does not mean running two copies
+for speech and one **Index-Translate 2B Q4_K_M** text model. A fastText language detector identifies the source. These are distinct tasks; consolidating them does not mean running two copies
 of the same model. The Telegram bot's behavior is unchanged.
 
 Required API contract (private Docker network):
 
 - `POST /internal/text-translation`: JSON `{text, source, target}`, authenticated `X-Matrix-Translation-Key`,
-  returns `{translatedText}`.
+  returns `{translatedText, detectedLanguage, skipped, confidence?}`. Source accepts `auto`; skipped results produce no bot reply.
 - `POST /v1/installations`: returns an installation `{token}`.
 - `POST /v1/transcriptions?filename=recording&language=auto`: bounded binary upload,
   installation bearer credential plus `X-Bot-Bridge-Key` containing the Matrix service key, returns job `{id}`.
@@ -84,7 +112,7 @@ Required API contract (private Docker network):
 The assistant deletes its transient speech result after reading it; the encrypted room reply is retained like other messages.
 If deletion fails, the API's existing expiry policy applies. Decrypted media is held in bounded memory, not saved by this bot.
 Only local homeserver media is fetched. Attachment size is enforced while streaming; encrypted attachments are
-SHA-256 checked before AES-CTR decryption. Preferences contain identifiers and language choices, not message text.
+SHA-256 checked before AES-CTR decryption. Preferences contain identifiers, language choices and explicitly saved custom instructions. Ordinary message text is not saved there.
 
 ## Build, tests, and operation
 
@@ -108,17 +136,15 @@ scheduled task, or automatic restart. Logs go to container stdout/stderr without
 Stop the assistant using `docker compose --profile translation stop translator` in the deployment directory.
 Stopping it leaves the original room messages and the shared Telegram inference worker available.
 
-Tests cover reciprocal language selection, learning mode, opt-outs and room boundaries, recorded-media consent,
+Tests cover shared targets, code/name aliases, automatic detection metadata, same-language skips, learning mode,
+room controls and boundaries, recorded-media consent,
 reply commands, attachment integrity, URL/size bounds, shared API authentication, and result cleanup.
 Deployment checks additionally use synthetic accounts and real encrypted media. Real phone recording/playback
 still requires a physical Android/iPhone check.
 
-The deployment check on 31 October 2026 passed invitation registration, encrypted message/media delivery,
-manual and reply translations, reciprocal English/Russian settings, learning mode, actual speech transcription
-from encrypted WAV and MP4 uploads, and authorization for the local calling service. Ten assistant unit tests
-passed with 94% line coverage over the tested assistant/inference/media/preferences modules; the Matrix runtime
-adapter is covered by the live integration check. Strict TypeScript checking passed. The shared API's twelve
-tests passed, including separate Matrix/Telegram bridge credentials using the same speech queue.
+The shared backend source and reproducible model download instructions are in `shared-api/`. It runs in the
+existing one-worker API service, not an additional server. The Matrix bot uses the same private API as the Telegram
+utility bot. Keep the existing speech data volume and credentials when upgrading. Model weights are not stored in Git.
 
 The participant guide assets are in `site/`; serve them as `/guide.html` and `/guide.css` on the installation website.
 

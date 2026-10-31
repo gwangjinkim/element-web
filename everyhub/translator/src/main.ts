@@ -41,8 +41,10 @@ const assistant = new Assistant(preferences, {
     ownUser: credentials.user_id,
     members: (room) => client.getJoinedRoomMembers(room),
     event: async (room, id) => (await client.getEvent(room, id)) as ChatEvent,
-    reply: (room, event, text) => client.replyNotice(room, event, text),
-    translate: (text, source, target) => inference.translate(text, source, target),
+    reply: (room, event, text, html) => client.replyNotice(room, event, text, html),
+    pause: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+    translate: (text, source, target, settings) => inference.translate(text, source, target, settings),
+    modelConfiguration: () => inference.modelConfiguration(),
     transcribe: async (event) => {
         const url = localMediaUrl(event, domain, homeserver);
         const response = await fetch(url, {
@@ -75,11 +77,16 @@ client.on("room.message", (room: string, event: ChatEvent) => {
     const command = messageBody(event).split(/\s+/, 1)[0];
     const generation = preferences.generation(room);
     // Room controls bypass slow inference so off also suppresses an in-flight result.
-    if (command === "!bot") {
+    if (
+        ["!bot", "!auto", "!learn", "!target", "!lang", "!language", "!temperature", "!prompt", "!model"].includes(
+            command,
+        )
+    ) {
         assistant.handle(room, event).catch(() => console.error("Language assistant room control failed"));
         return;
     }
-    if (preferences.isMuted(room) && !["!help", "!settings"].includes(command)) return;
+    if (preferences.isMuted(room) && !["!help", "!settings", "!model", "!prompt", "!temperature"].includes(command))
+        return;
     if (queued >= 20) {
         client.replyNotice(room, event, "The language assistant queue is full. Try again shortly.").catch(() => {});
         return;

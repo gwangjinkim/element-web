@@ -1,0 +1,11 @@
+# Copyright 2026 Gwang-Jin Kim
+# SPDX-License-Identifier: AGPL-3.0-only
+
+**
+!Dockerfile
+!pyproject.toml
+!requirements.lock
+!app/
+!app/**
+**/__pycache__
+**/*.pyc

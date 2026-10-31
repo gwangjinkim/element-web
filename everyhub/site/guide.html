@@ -28,24 +28,26 @@
                 </p>
             </section>
             <section>
-                <h2>2. Each person chooses a language</h2>
+                <h2>2. Choose a shared language</h2>
                 <p>
-                    In an English/Russian conversation, you send <code>!language en</code> and your friend sends
-                    <code>!language ru</code>. English messages receive Russian translations, and Russian messages
-                    receive English translations.
+                    Send <code>!target english</code> (or <code>!target en</code>), then <code>!auto on</code>. The
+                    assistant detects everyone’s messages and translates them into English. Messages already in English
+                    receive no reply. Choose another shared target whenever you need it.
                 </p>
                 <p>
-                    Language codes: <code>en</code> English · <code>de</code> German · <code>ko</code> Korean ·
-                    <code>uk</code> Ukrainian · <code>ru</code> Russian · <code>pl</code> Polish ·
-                    <code>el</code> Greek.
+                    Use short codes or English names, for example: <code>en</code> English · <code>de</code> German ·
+                    <code>ko</code> Korean · <code>uk</code> Ukrainian · <code>ru</code> Russian ·
+                    <code>pl</code> Polish · <code>el</code> Greek. The model supports 150 languages and variants. Use
+                    <code>!lang auto</code> for automatic detection, or <code>!lang russian</code> to set your own
+                    writing language. Short and mixed-language messages can be misdetected.
                 </p>
             </section>
             <section>
                 <h2>3. Turn on learning mode</h2>
                 <p>
-                    Send <code>!learn on</code> to include both the original and the translation in replies into your
-                    language. Send <code>!learn off</code> for translation-only replies. Original messages remain in the
-                    conversation in either mode.
+                    Send <code>!learn on</code> to include both the original and the translation in replies for this
+                    conversation. Send <code>!learn off</code> for translation-only replies. Original messages remain in
+                    the conversation in either mode.
                 </p>
                 <div class="example">
                     <small>Original (en)</small>
@@ -62,40 +64,62 @@
                     <code>!transcribe</code> for a one-time transcript.
                 </p>
                 <p>
-                    Audio language is detected automatically. Transcripts also receive translations for participants who
-                    selected another supported language. Recordings must be under 20 MiB and 10 minutes. Live calls are
-                    not recorded or transcribed.
+                    Audio language is detected automatically. Transcripts are also translated into the shared target
+                    when automatic translation is on and the languages differ. Recordings must be under 20 MiB and 10
+                    minutes. Live calls are not recorded or transcribed.
                 </p>
             </section>
             <section>
                 <h2>Your controls</h2>
+                <p>
+                    Send <code>!bot</code>, <code>!auto</code>, or <code>!learn</code> without an argument to toggle it.
+                    The assistant confirms whether it is now on or off. Add <code>on</code> or <code>off</code> to set
+                    it explicitly.
+                </p>
                 <dl>
                     <dt><code>!bot off</code> / <code>!bot on</code></dt>
                     <dd>
                         Silence or resume the assistant for everyone in this conversation. Translations and transcripts
                         stop, including one-time requests. Language choices are saved. Any participant can use this
                         switch. Resume applies to new messages; messages sent while off are not translated later. Help
-                        and settings remain available while off.
+                        and settings remain available while off, as do <code>!model</code>, <code>!prompt</code> and
+                        <code>!temperature</code>.
+                    </dd>
+                    <dt><code>!model</code></dt>
+                    <dd>See the installed model and this conversation’s settings.</dd>
+                    <dt><code>!temperature 0.2</code></dt>
+                    <dd>
+                        Set variation for this conversation (0–1; default 0). Higher is more varied, not necessarily
+                        more accurate. Send <code>!temperature</code> to view it or <code>!temperature reset</code> to
+                        restore 0.
+                    </dd>
+                    <dt><code>!prompt</code></dt>
+                    <dd>
+                        Show the exact translation prompt template. <code>!prompt add Use informal language.</code> adds
+                        instructions; <code>!prompt set …</code> replaces your conversation’s custom instructions;
+                        <code>!prompt reset</code> restores the default. The base translation rules stay in place. These
+                        settings apply to everyone here and do not affect other conversations.
                     </dd>
                     <dt><code>!settings</code></dt>
-                    <dd>See your choices for this conversation.</dd>
+                    <dd>See the shared room settings and your own choices.</dd>
                     <dt><code>!auto off</code> / <code>!auto on</code></dt>
-                    <dd>Stop or enable automatic translations into your language.</dd>
+                    <dd>Stop or enable automatic translations for everyone in this conversation.</dd>
                     <dt><code>!transcribe off</code></dt>
                     <dd>Stop automatic transcripts of your own recordings.</dd>
                     <dt><code>!forget</code></dt>
-                    <dd>Remove your saved preferences for this conversation.</dd>
+                    <dd>Remove your own source language and recording choices. Shared room settings remain.</dd>
                     <dt><code>!translate en ru Hello</code></dt>
                     <dd>Translate once. You can also reply to text with <code>!translate ru en</code>.</dd>
                     <dt><code>!help</code></dt>
-                    <dd>Show all commands in chat.</dd>
+                    <dd>Show a compact command reminder. Use <code>!help details</code> for the full rules.</dd>
                 </dl>
             </section>
             <p class="note">
-                Settings belong to each participant and each conversation. The same commands work in the web app,
-                Android, and iPhone. Translations and transcripts can make mistakes; check important details. Automatic
-                text translation supports up to 3,000 characters per message. Longer transcripts remain readable. If
-                several people share a target language, learning mode includes the original when any of them enables it.
+                Target language, automatic translation and learning mode are shared by the conversation. Your source
+                language and recording choices belong to you. The same commands work in the web app, Android, and
+                iPhone. Translations and transcripts can make mistakes; check important details. Automatic text
+                translation supports up to 3,000 characters per message. Longer transcripts remain readable. Translation
+                runs locally using Index-Translate 2B; speech uses Whisper small.
             </p>
             <p>
                 <a href="https://github.com/gwangjinkim/element-web/tree/everyhub-language-tools/everyhub"

@@ -1,0 +1,1283 @@
+{
+  "copyright": "Copyright 2026 Gwang-Jin Kim",
+  "license": "AGPL-3.0-only",
+  "source": "https://arxiv.org/html/2609.40181v2#A3",
+  "languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "aliases": [
+        "en",
+        "eng_latn"
+      ]
+    },
+    {
+      "code": "zh",
+      "name": "Chinese",
+      "aliases": [
+        "zh",
+        "zho_hans"
+      ]
+    },
+    {
+      "code": "de",
+      "name": "German",
+      "aliases": [
+        "de"
+      ]
+    },
+    {
+      "code": "fr",
+      "name": "French",
+      "aliases": [
+        "fr"
+      ]
+    },
+    {
+      "code": "es",
+      "name": "Spanish",
+      "aliases": [
+        "es"
+      ]
+    },
+    {
+      "code": "ja",
+      "name": "Japanese",
+      "aliases": [
+        "ja"
+      ]
+    },
+    {
+      "code": "ko",
+      "name": "Korean",
+      "aliases": [
+        "ko"
+      ]
+    },
+    {
+      "code": "pt",
+      "name": "Portuguese",
+      "aliases": [
+        "pt"
+      ]
+    },
+    {
+      "code": "ru",
+      "name": "Russian",
+      "aliases": [
+        "ru"
+      ]
+    },
+    {
+      "code": "ar",
+      "name": "Arabic",
+      "aliases": [
+        "ar"
+      ]
+    },
+    {
+      "code": "it",
+      "name": "Italian",
+      "aliases": [
+        "it"
+      ]
+    },
+    {
+      "code": "nl",
+      "name": "Dutch",
+      "aliases": [
+        "nl"
+      ]
+    },
+    {
+      "code": "pl",
+      "name": "Polish",
+      "aliases": [
+        "pl"
+      ]
+    },
+    {
+      "code": "ro",
+      "name": "Romanian",
+      "aliases": [
+        "ro"
+      ]
+    },
+    {
+      "code": "sv",
+      "name": "Swedish",
+      "aliases": [
+        "sv"
+      ]
+    },
+    {
+      "code": "tr",
+      "name": "Turkish",
+      "aliases": [
+        "tr"
+      ]
+    },
+    {
+      "code": "hi",
+      "name": "Hindi",
+      "aliases": [
+        "hi"
+      ]
+    },
+    {
+      "code": "vi",
+      "name": "Vietnamese",
+      "aliases": [
+        "vi"
+      ]
+    },
+    {
+      "code": "th",
+      "name": "Thai",
+      "aliases": [
+        "th"
+      ]
+    },
+    {
+      "code": "id",
+      "name": "Indonesian",
+      "aliases": [
+        "id"
+      ]
+    },
+    {
+      "code": "ms",
+      "name": "Malay",
+      "aliases": [
+        "ms"
+      ]
+    },
+    {
+      "code": "fil",
+      "name": "Filipino",
+      "aliases": [
+        "fil",
+        "tl"
+      ]
+    },
+    {
+      "code": "uk",
+      "name": "Ukrainian",
+      "aliases": [
+        "ukr_cyrl",
+        "uk",
+        "ukr"
+      ]
+    },
+    {
+      "code": "fa",
+      "name": "Persian",
+      "aliases": [
+        "fas_arab",
+        "pes_arab",
+        "fa",
+        "fas"
+      ]
+    },
+    {
+      "code": "cs",
+      "name": "Czech",
+      "aliases": [
+        "ces_latn",
+        "cs",
+        "ces"
+      ]
+    },
+    {
+      "code": "el",
+      "name": "Greek",
+      "aliases": [
+        "ell_grek",
+        "el",
+        "ell"
+      ]
+    },
+    {
+      "code": "da",
+      "name": "Danish",
+      "aliases": [
+        "dan_latn",
+        "da",
+        "dan"
+      ]
+    },
+    {
+      "code": "hu",
+      "name": "Hungarian",
+      "aliases": [
+        "hun_latn",
+        "hu",
+        "hun"
+      ]
+    },
+    {
+      "code": "fi",
+      "name": "Finnish",
+      "aliases": [
+        "fin_latn",
+        "fi",
+        "fin"
+      ]
+    },
+    {
+      "code": "nb",
+      "name": "Norwegian Bokmål",
+      "aliases": [
+        "nob_latn",
+        "nb",
+        "nob"
+      ]
+    },
+    {
+      "code": "sk",
+      "name": "Slovak",
+      "aliases": [
+        "slk_latn",
+        "sk",
+        "slk"
+      ]
+    },
+    {
+      "code": "bg",
+      "name": "Bulgarian",
+      "aliases": [
+        "bul_cyrl",
+        "bg",
+        "bul"
+      ]
+    },
+    {
+      "code": "bs",
+      "name": "Bosnian",
+      "aliases": [
+        "bos_latn",
+        "bs",
+        "bos"
+      ]
+    },
+    {
+      "code": "ca",
+      "name": "Catalan",
+      "aliases": [
+        "cat_latn",
+        "ca",
+        "cat"
+      ]
+    },
+    {
+      "code": "bn",
+      "name": "Bengali",
+      "aliases": [
+        "ben_beng",
+        "bn",
+        "ben"
+      ]
+    },
+    {
+      "code": "he",
+      "name": "Hebrew",
+      "aliases": [
+        "heb_hebr",
+        "he",
+        "heb"
+      ]
+    },
+    {
+      "code": "lt",
+      "name": "Lithuanian",
+      "aliases": [
+        "lit_latn",
+        "lt",
+        "lit"
+      ]
+    },
+    {
+      "code": "sl",
+      "name": "Slovenian",
+      "aliases": [
+        "slv_latn",
+        "sl",
+        "slv"
+      ]
+    },
+    {
+      "code": "et",
+      "name": "Estonian",
+      "aliases": [
+        "ekk_latn",
+        "et",
+        "ekk"
+      ]
+    },
+    {
+      "code": "sq",
+      "name": "Albanian",
+      "aliases": [
+        "als_latn",
+        "sq",
+        "als"
+      ]
+    },
+    {
+      "code": "lv",
+      "name": "Latvian",
+      "aliases": [
+        "lvs_latn",
+        "lv",
+        "lvs"
+      ]
+    },
+    {
+      "code": "az",
+      "name": "Azerbaijani",
+      "aliases": [
+        "azj_latn",
+        "az",
+        "azj"
+      ]
+    },
+    {
+      "code": "hr",
+      "name": "Croatian",
+      "aliases": [
+        "hrv_latn",
+        "hr",
+        "hrv"
+      ]
+    },
+    {
+      "code": "ta",
+      "name": "Tamil",
+      "aliases": [
+        "tam_taml",
+        "ta",
+        "tam"
+      ]
+    },
+    {
+      "code": "ne",
+      "name": "Nepali",
+      "aliases": [
+        "npi_deva",
+        "ne",
+        "npi"
+      ]
+    },
+    {
+      "code": "ur",
+      "name": "Urdu (Arabic script)",
+      "aliases": [
+        "urd_arab",
+        "ur",
+        "urd"
+      ]
+    },
+    {
+      "code": "mk",
+      "name": "Macedonian",
+      "aliases": [
+        "mkd_cyrl",
+        "mk",
+        "mkd"
+      ]
+    },
+    {
+      "code": "sr",
+      "name": "Serbian (Cyrillic)",
+      "aliases": [
+        "srp_cyrl",
+        "sr",
+        "srp"
+      ]
+    },
+    {
+      "code": "mr",
+      "name": "Marathi",
+      "aliases": [
+        "mar_deva",
+        "mr",
+        "mar"
+      ]
+    },
+    {
+      "code": "ka",
+      "name": "Georgian",
+      "aliases": [
+        "kat_geor",
+        "ka",
+        "kat"
+      ]
+    },
+    {
+      "code": "ml",
+      "name": "Malayalam",
+      "aliases": [
+        "mal_mlym",
+        "ml",
+        "mal"
+      ]
+    },
+    {
+      "code": "kk",
+      "name": "Kazakh",
+      "aliases": [
+        "kaz_cyrl",
+        "kk",
+        "kaz"
+      ]
+    },
+    {
+      "code": "is",
+      "name": "Icelandic",
+      "aliases": [
+        "isl_latn",
+        "is",
+        "isl"
+      ]
+    },
+    {
+      "code": "gl",
+      "name": "Galician",
+      "aliases": [
+        "glg_latn",
+        "gl",
+        "glg"
+      ]
+    },
+    {
+      "code": "kn",
+      "name": "Kannada",
+      "aliases": [
+        "kan_knda",
+        "kn",
+        "kan"
+      ]
+    },
+    {
+      "code": "ary",
+      "name": "Moroccan Arabic",
+      "aliases": [
+        "ary_arab",
+        "ary"
+      ]
+    },
+    {
+      "code": "gu",
+      "name": "Gujarati",
+      "aliases": [
+        "guj_gujr",
+        "gu",
+        "guj"
+      ]
+    },
+    {
+      "code": "be",
+      "name": "Belarusian",
+      "aliases": [
+        "bel_cyrl",
+        "be",
+        "bel"
+      ]
+    },
+    {
+      "code": "af",
+      "name": "Afrikaans",
+      "aliases": [
+        "afr_latn",
+        "af",
+        "afr"
+      ]
+    },
+    {
+      "code": "hy",
+      "name": "Armenian",
+      "aliases": [
+        "hye_armn",
+        "hy",
+        "hye"
+      ]
+    },
+    {
+      "code": "mn",
+      "name": "Mongolian",
+      "aliases": [
+        "khk_cyrl",
+        "mn",
+        "khk"
+      ]
+    },
+    {
+      "code": "km",
+      "name": "Khmer",
+      "aliases": [
+        "khm_khmr",
+        "km",
+        "khm"
+      ]
+    },
+    {
+      "code": "eu",
+      "name": "Basque",
+      "aliases": [
+        "eus_latn",
+        "eu",
+        "eus"
+      ]
+    },
+    {
+      "code": "my",
+      "name": "Burmese",
+      "aliases": [
+        "mya_mymr",
+        "my",
+        "mya"
+      ]
+    },
+    {
+      "code": "la",
+      "name": "Latin",
+      "aliases": [
+        "lat_latn",
+        "la",
+        "lat"
+      ]
+    },
+    {
+      "code": "uz",
+      "name": "Uzbek (Cyrillic)",
+      "aliases": [
+        "uzn_cyrl",
+        "uz",
+        "uzn"
+      ]
+    },
+    {
+      "code": "te",
+      "name": "Telugu",
+      "aliases": [
+        "tel_telu",
+        "te",
+        "tel"
+      ]
+    },
+    {
+      "code": "or",
+      "name": "Odia",
+      "aliases": [
+        "ory_orya",
+        "or",
+        "ory"
+      ]
+    },
+    {
+      "code": "nn",
+      "name": "Norwegian Nynorsk",
+      "aliases": [
+        "nno_latn",
+        "nn",
+        "nno"
+      ]
+    },
+    {
+      "code": "uzn_latn",
+      "name": "Uzbek (Latin)",
+      "aliases": [
+        "uzn_latn"
+      ]
+    },
+    {
+      "code": "sw",
+      "name": "Swahili",
+      "aliases": [
+        "swh_latn",
+        "sw",
+        "swh"
+      ]
+    },
+    {
+      "code": "si",
+      "name": "Sinhala",
+      "aliases": [
+        "sin_sinh",
+        "si",
+        "sin"
+      ]
+    },
+    {
+      "code": "ky",
+      "name": "Kyrgyz",
+      "aliases": [
+        "kir_cyrl",
+        "ky",
+        "kir"
+      ]
+    },
+    {
+      "code": "so",
+      "name": "Somali",
+      "aliases": [
+        "som_latn",
+        "so",
+        "som"
+      ]
+    },
+    {
+      "code": "pa",
+      "name": "Punjabi",
+      "aliases": [
+        "pan_guru",
+        "pa",
+        "pan"
+      ]
+    },
+    {
+      "code": "arz",
+      "name": "Egyptian Arabic",
+      "aliases": [
+        "arz_arab",
+        "arz"
+      ]
+    },
+    {
+      "code": "cy",
+      "name": "Welsh",
+      "aliases": [
+        "cym_latn",
+        "cy",
+        "cym"
+      ]
+    },
+    {
+      "code": "nrm",
+      "name": "Norman",
+      "aliases": [
+        "nrm_latn",
+        "nrm"
+      ]
+    },
+    {
+      "code": "pbt",
+      "name": "Pashto",
+      "aliases": [
+        "pbt_arab",
+        "pbt"
+      ]
+    },
+    {
+      "code": "ga",
+      "name": "Irish",
+      "aliases": [
+        "gle_latn",
+        "ga",
+        "gle"
+      ]
+    },
+    {
+      "code": "srp_latn",
+      "name": "Serbian (Latin)",
+      "aliases": [
+        "srp_latn"
+      ]
+    },
+    {
+      "code": "ha",
+      "name": "Hausa",
+      "aliases": [
+        "hau_latn",
+        "ha",
+        "hau"
+      ]
+    },
+    {
+      "code": "ckb",
+      "name": "Central Kurdish",
+      "aliases": [
+        "ckb_arab",
+        "ckb"
+      ]
+    },
+    {
+      "code": "mt",
+      "name": "Maltese",
+      "aliases": [
+        "mlt_latn",
+        "mt",
+        "mlt"
+      ]
+    },
+    {
+      "code": "yue",
+      "name": "Cantonese",
+      "aliases": [
+        "yue_hani",
+        "yue_hant",
+        "yue"
+      ]
+    },
+    {
+      "code": "tg",
+      "name": "Tajik",
+      "aliases": [
+        "tgk_cyrl",
+        "tg",
+        "tgk"
+      ]
+    },
+    {
+      "code": "ku",
+      "name": "Northern Kurdish",
+      "aliases": [
+        "kmr_latn",
+        "ku",
+        "kmr"
+      ]
+    },
+    {
+      "code": "bew",
+      "name": "Betawi",
+      "aliases": [
+        "bew_latn",
+        "bew"
+      ]
+    },
+    {
+      "code": "am",
+      "name": "Amharic",
+      "aliases": [
+        "amh_ethi",
+        "am",
+        "amh"
+      ]
+    },
+    {
+      "code": "lo",
+      "name": "Lao",
+      "aliases": [
+        "lao_laoo",
+        "lo",
+        "lao"
+      ]
+    },
+    {
+      "code": "lb",
+      "name": "Luxembourgish",
+      "aliases": [
+        "ltz_latn",
+        "lb",
+        "ltz"
+      ]
+    },
+    {
+      "code": "fy",
+      "name": "Frisian",
+      "aliases": [
+        "fry_latn",
+        "fy",
+        "fry"
+      ]
+    },
+    {
+      "code": "dv",
+      "name": "Dhivehi",
+      "aliases": [
+        "div_thaa",
+        "dv",
+        "div"
+      ]
+    },
+    {
+      "code": "eo",
+      "name": "Esperanto",
+      "aliases": [
+        "epo_latn",
+        "eo",
+        "epo"
+      ]
+    },
+    {
+      "code": "rw",
+      "name": "Kinyarwanda",
+      "aliases": [
+        "kin_latn",
+        "rw",
+        "kin"
+      ]
+    },
+    {
+      "code": "ars",
+      "name": "Najdi Arabic",
+      "aliases": [
+        "ars_arab",
+        "ars"
+      ]
+    },
+    {
+      "code": "fo",
+      "name": "Faroese",
+      "aliases": [
+        "fao_latn",
+        "fo",
+        "fao"
+      ]
+    },
+    {
+      "code": "mg",
+      "name": "Malagasy",
+      "aliases": [
+        "plt_latn",
+        "mg",
+        "plt"
+      ]
+    },
+    {
+      "code": "as",
+      "name": "Assamese",
+      "aliases": [
+        "asm_beng",
+        "as",
+        "asm"
+      ]
+    },
+    {
+      "code": "sd",
+      "name": "Sindhi",
+      "aliases": [
+        "snd_arab",
+        "sd",
+        "snd"
+      ]
+    },
+    {
+      "code": "xh",
+      "name": "Xhosa",
+      "aliases": [
+        "xho_latn",
+        "xh",
+        "xho"
+      ]
+    },
+    {
+      "code": "tk",
+      "name": "Turkmen",
+      "aliases": [
+        "tuk_latn",
+        "tk",
+        "tuk"
+      ]
+    },
+    {
+      "code": "ht",
+      "name": "Haitian Creole",
+      "aliases": [
+        "hat_latn",
+        "ht",
+        "hat"
+      ]
+    },
+    {
+      "code": "gd",
+      "name": "Scottish Gaelic",
+      "aliases": [
+        "gla_latn",
+        "gd",
+        "gla"
+      ]
+    },
+    {
+      "code": "ceb",
+      "name": "Cebuano",
+      "aliases": [
+        "ceb_latn",
+        "ceb"
+      ]
+    },
+    {
+      "code": "yi",
+      "name": "Yiddish",
+      "aliases": [
+        "ydd_hebr",
+        "yi",
+        "ydd"
+      ]
+    },
+    {
+      "code": "jv",
+      "name": "Javanese",
+      "aliases": [
+        "jav_latn",
+        "jv",
+        "jav"
+      ]
+    },
+    {
+      "code": "ba",
+      "name": "Bashkir",
+      "aliases": [
+        "bak_cyrl",
+        "ba",
+        "bak"
+      ]
+    },
+    {
+      "code": "pap",
+      "name": "Papiamento",
+      "aliases": [
+        "pap_latn",
+        "pap"
+      ]
+    },
+    {
+      "code": "mi",
+      "name": "Māori",
+      "aliases": [
+        "mri_latn",
+        "mi",
+        "mri"
+      ]
+    },
+    {
+      "code": "ug",
+      "name": "Uyghur",
+      "aliases": [
+        "uig_arab",
+        "ug",
+        "uig"
+      ]
+    },
+    {
+      "code": "tt",
+      "name": "Tatar",
+      "aliases": [
+        "tat_cyrl",
+        "tt",
+        "tat"
+      ]
+    },
+    {
+      "code": "bo",
+      "name": "Tibetan",
+      "aliases": [
+        "bod_tibt",
+        "bo",
+        "bod"
+      ]
+    },
+    {
+      "code": "mww",
+      "name": "White Hmong",
+      "aliases": [
+        "mww_latn",
+        "mww"
+      ]
+    },
+    {
+      "code": "hyw",
+      "name": "Western Armenian",
+      "aliases": [
+        "hyw_armn",
+        "hyw"
+      ]
+    },
+    {
+      "code": "yo",
+      "name": "Yoruba",
+      "aliases": [
+        "yor_latn",
+        "yo",
+        "yor"
+      ]
+    },
+    {
+      "code": "zu",
+      "name": "Zulu",
+      "aliases": [
+        "zul_latn",
+        "zu",
+        "zul"
+      ]
+    },
+    {
+      "code": "sdh",
+      "name": "Southern Kurdish",
+      "aliases": [
+        "sdh_arab",
+        "sdh"
+      ]
+    },
+    {
+      "code": "sm",
+      "name": "Samoan",
+      "aliases": [
+        "smo_latn",
+        "sm",
+        "smo"
+      ]
+    },
+    {
+      "code": "co",
+      "name": "Corsican",
+      "aliases": [
+        "cos_latn",
+        "co",
+        "cos"
+      ]
+    },
+    {
+      "code": "hif",
+      "name": "Fiji Hindi",
+      "aliases": [
+        "hif_latn",
+        "hif"
+      ]
+    },
+    {
+      "code": "su",
+      "name": "Sundanese",
+      "aliases": [
+        "sun_latn",
+        "su",
+        "sun"
+      ]
+    },
+    {
+      "code": "ny",
+      "name": "Chichewa",
+      "aliases": [
+        "nya_latn",
+        "ny",
+        "nya"
+      ]
+    },
+    {
+      "code": "ig",
+      "name": "Igbo",
+      "aliases": [
+        "ibo_latn",
+        "ig",
+        "ibo"
+      ]
+    },
+    {
+      "code": "haw",
+      "name": "Hawaiian",
+      "aliases": [
+        "haw_latn",
+        "haw"
+      ]
+    },
+    {
+      "code": "st",
+      "name": "Sesotho",
+      "aliases": [
+        "sot_latn",
+        "st",
+        "sot"
+      ]
+    },
+    {
+      "code": "lus",
+      "name": "Mizo",
+      "aliases": [
+        "lus_latn",
+        "lus"
+      ]
+    },
+    {
+      "code": "sn",
+      "name": "Shona",
+      "aliases": [
+        "sna_latn",
+        "sn",
+        "sna"
+      ]
+    },
+    {
+      "code": "cv",
+      "name": "Chuvash",
+      "aliases": [
+        "chv_cyrl",
+        "cv",
+        "chv"
+      ]
+    },
+    {
+      "code": "azb",
+      "name": "South Azerbaijani",
+      "aliases": [
+        "azb_arab",
+        "azb"
+      ]
+    },
+    {
+      "code": "rm",
+      "name": "Romansh",
+      "aliases": [
+        "roh_latn",
+        "rm",
+        "roh"
+      ]
+    },
+    {
+      "code": "rn",
+      "name": "Kirundi",
+      "aliases": [
+        "run_latn",
+        "rn",
+        "run"
+      ]
+    },
+    {
+      "code": "hin_latn",
+      "name": "Hindi (Latin)",
+      "aliases": [
+        "hin_latn"
+      ]
+    },
+    {
+      "code": "sah",
+      "name": "Yakut",
+      "aliases": [
+        "sah_cyrl",
+        "sah"
+      ]
+    },
+    {
+      "code": "ti",
+      "name": "Tigrinya",
+      "aliases": [
+        "tir_ethi",
+        "ti",
+        "tir"
+      ]
+    },
+    {
+      "code": "ast",
+      "name": "Asturian",
+      "aliases": [
+        "ast_latn",
+        "ast"
+      ]
+    },
+    {
+      "code": "oc",
+      "name": "Occitan",
+      "aliases": [
+        "oci_latn",
+        "oc",
+        "oci"
+      ]
+    },
+    {
+      "code": "cnh",
+      "name": "Hakha Chin",
+      "aliases": [
+        "cnh_latn",
+        "cnh"
+      ]
+    },
+    {
+      "code": "se",
+      "name": "Northern Sami",
+      "aliases": [
+        "sme_latn",
+        "se",
+        "sme"
+      ]
+    },
+    {
+      "code": "nds",
+      "name": "Low German",
+      "aliases": [
+        "nds_latn",
+        "nds"
+      ]
+    },
+    {
+      "code": "os",
+      "name": "Ossetian",
+      "aliases": [
+        "oss_cyrl",
+        "os",
+        "oss"
+      ]
+    },
+    {
+      "code": "urd_latn",
+      "name": "Urdu (Latin)",
+      "aliases": [
+        "urd_latn"
+      ]
+    },
+    {
+      "code": "gsw",
+      "name": "Swiss German",
+      "aliases": [
+        "gsw_latn",
+        "gsw"
+      ]
+    },
+    {
+      "code": "anp",
+      "name": "Angika",
+      "aliases": [
+        "anp_deva",
+        "anp"
+      ]
+    },
+    {
+      "code": "apc",
+      "name": "Levantine Arabic",
+      "aliases": [
+        "apc_arab",
+        "apc"
+      ]
+    },
+    {
+      "code": "om",
+      "name": "Oromo",
+      "aliases": [
+        "gaz_latn",
+        "om",
+        "gaz"
+      ]
+    },
+    {
+      "code": "nap",
+      "name": "Neapolitan",
+      "aliases": [
+        "nap_latn",
+        "nap"
+      ]
+    },
+    {
+      "code": "hsb",
+      "name": "Upper Sorbian",
+      "aliases": [
+        "hsb_latn",
+        "hsb"
+      ]
+    },
+    {
+      "code": "hil",
+      "name": "Hiligaynon",
+      "aliases": [
+        "hil_latn",
+        "hil"
+      ]
+    },
+    {
+      "code": "kl",
+      "name": "Greenlandic",
+      "aliases": [
+        "kal_latn",
+        "kl",
+        "kal"
+      ]
+    }
+  ]
+}

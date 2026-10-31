@@ -6,7 +6,8 @@ Please see LICENSE in the repository root for full details.
 */
 
 import fs from "node:fs";
-import type { Language } from "./preferences.ts";
+import type { Translation, ModelConfiguration, TranslationSettings } from "./assistant.ts";
+import type { Language, SourceLanguage } from "./preferences.ts";
 
 /** Access the existing shared inference worker; no models run in the Matrix bot. */
 export class Inference {
@@ -22,17 +23,52 @@ export class Inference {
         if (fs.existsSync(credentialFile)) this.token = fs.readFileSync(credentialFile, "utf8").trim();
     }
 
-    public async translate(text: string, source: Language, target: Language): Promise<string> {
+    public async translate(
+        text: string,
+        source: SourceLanguage,
+        target: Language,
+        settings?: TranslationSettings,
+    ): Promise<Translation> {
         const response = await fetch(this.base + "/internal/text-translation", {
             method: "POST",
-            signal: AbortSignal.timeout(120000),
+            signal: AbortSignal.timeout(300000),
             headers: { "Content-Type": "application/json", "X-Matrix-Translation-Key": this.key },
-            body: JSON.stringify({ text, source, target }),
+            body: JSON.stringify({
+                text,
+                source,
+                target,
+                temperature: settings?.temperature ?? 0,
+                instructions: settings?.instructions ?? "",
+            }),
         });
         if (!response.ok) throw new Error("The local translation service is unavailable.");
-        const result = (await response.json()) as { translatedText: string };
-        if (typeof result.translatedText !== "string") throw new Error("Invalid translation result.");
-        return result.translatedText;
+        const result = (await response.json()) as Translation;
+        if (
+            typeof result.translatedText !== "string" ||
+            typeof result.skipped !== "boolean" ||
+            (!result.skipped && !result.translatedText.trim()) ||
+            (result.detectedLanguage !== null && typeof result.detectedLanguage !== "string")
+        )
+            throw new Error("Invalid translation result.");
+        return result;
+    }
+
+    public async modelConfiguration(): Promise<ModelConfiguration> {
+        const response = await fetch(this.base + "/internal/text-translation/config", {
+            headers: { "X-Matrix-Translation-Key": this.key },
+            signal: AbortSignal.timeout(15000),
+        });
+        if (!response.ok) throw new Error("The local model configuration is unavailable.");
+        const result = (await response.json()) as ModelConfiguration;
+        if (
+            typeof result.model !== "string" ||
+            typeof result.promptTemplate !== "string" ||
+            result.maxTemperature !== 1 ||
+            result.maxInstructions !== 1600 ||
+            result.defaultTemperature !== 0
+        )
+            throw new Error("Invalid model configuration.");
+        return result;
     }
 
     public async transcribe(audio: Buffer): Promise<{ text: string; language: string }> {
