@@ -1,0 +1,332 @@
+<!doctype html>
+<!-- Copyright 2026 Gwang-Jin Kim. SPDX-License-Identifier: AGPL-3.0-only -->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <meta
+            name="description"
+            content="Join Everyhub Chat. Create your own account and connect your phone, one simple step at a time."
+        />
+        <meta name="color-scheme" content="light" />
+        <meta name="referrer" content="no-referrer" />
+        <title>Join Everyhub Chat</title>
+        <link rel="stylesheet" href="/onboarding.css?v=1" />
+        <script src="/onboarding.js?v=1" type="module"></script>
+    </head>
+    <body>
+        <header>
+            <a class="wordmark" href="/" aria-label="Everyhub Chat"
+                ><span class="mark">e</span> everyhub <span>/ chat</span></a
+            >
+            <label class="language"
+                ><span data-i18n="language">Language</span
+                ><select id="language" aria-label="Language">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="pl">Polski</option>
+                </select></label
+            >
+        </header>
+        <main>
+            <div class="intro">
+                <p class="eyebrow" data-i18n="eyebrow">A PRIVATE PLACE FOR FRIENDS</p>
+                <h1 data-i18n="title">Let’s get you chatting.</h1>
+                <p data-i18n="intro">Your own account. A few small steps. We’ll guide you.</p>
+            </div>
+            <nav class="progress" aria-label="Setup progress">
+                <ol>
+                    <li data-progress="1" aria-current="step">
+                        <span>1</span><span data-i18n="account">Account</span>
+                    </li>
+                    <li data-progress="2"><span>2</span><span data-i18n="app">App</span></li>
+                    <li data-progress="3"><span>3</span><span data-i18n="signIn">Sign in</span></li>
+                    <li data-progress="4"><span>4</span><span data-i18n="chat">Chat</span></li>
+                </ol>
+            </nav>
+            <div class="card">
+                <section data-step="1" aria-labelledby="account-title">
+                    <p class="step-label" data-i18n="step1">STEP 1 OF 4</p>
+                    <h2 id="account-title" tabindex="-1" data-i18n="accountTitle">Create your own account</h2>
+                    <p data-i18n="accountIntro">Choose a username and password for yourself.</p>
+                    <p id="invitation-state" class="notice" role="status"></p>
+                    <form id="join-form" method="post">
+                        <div id="invitation-field">
+                            <label for="invite" data-i18n="inviteLabel"
+                                >Invitation code or personal invitation link</label
+                            ><input
+                                id="invite"
+                                name="invite"
+                                autocomplete="off"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                type="password"
+                                maxlength="2048"
+                            />
+                            <p class="hint" data-i18n="inviteHelp">
+                                Open the personal link Josephus sent you. It fills in the code here. No code is sent
+                                separately.
+                            </p>
+                        </div>
+                        <label for="username" data-i18n="usernameLabel">Choose your username</label
+                        ><input
+                            id="username"
+                            name="username"
+                            required
+                            pattern="[a-z0-9._=\-]+"
+                            minlength="3"
+                            maxlength="40"
+                            autocomplete="username"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            placeholder="yourname"
+                            aria-describedby="username-help account-preview"
+                        />
+                        <p id="username-help" class="hint" data-i18n="usernameHelp">
+                            At least 3 characters: lowercase letters, numbers, dots or underscores. Choose a name for
+                            yourself.
+                        </p>
+                        <p class="account-preview" id="account-preview" aria-live="polite">
+                            <span data-i18n="yourAccount">Your account</span
+                            ><code id="preview-id">@yourname:chat.everyhub.org</code>
+                        </p>
+                        <label for="password" data-i18n="passwordLabel">Choose your password</label
+                        ><input
+                            id="password"
+                            name="password"
+                            type="password"
+                            minlength="12"
+                            maxlength="128"
+                            required
+                            autocomplete="new-password"
+                            aria-describedby="password-help"
+                        />
+                        <p id="password-help" class="hint" data-i18n="passwordHelp">
+                            At least 12 characters. Keep it in your password manager or somewhere safe.
+                        </p>
+                        <label for="confirm" data-i18n="confirmLabel">Type your password again</label
+                        ><input
+                            id="confirm"
+                            name="confirm"
+                            type="password"
+                            minlength="12"
+                            maxlength="128"
+                            required
+                            autocomplete="new-password"
+                        />
+                        <label class="checkbox"
+                            ><input id="show-password" type="checkbox" /><span data-i18n="showPasswords"
+                                >Show passwords</span
+                            ></label
+                        >
+                        <p id="join-status" role="status" aria-live="polite"></p>
+                        <button class="button primary" id="join-button" type="submit" disabled data-i18n="create">
+                            Create my account →
+                        </button>
+                    </form>
+                    <button class="text-button" type="button" id="already-account" data-i18n="already">
+                        I already have my own account →
+                    </button>
+                </section>
+                <section data-step="2" aria-labelledby="app-title" hidden>
+                    <p class="step-label" data-i18n="step2">STEP 2 OF 4</p>
+                    <h2 id="app-title" tabindex="-1" data-i18n="appTitle">Choose your device</h2>
+                    <p id="account-created" class="notice" hidden>
+                        <span data-i18n="created">Your account is ready.</span> <strong class="own-id"></strong>
+                    </p>
+                    <div class="devices" role="group" aria-label="Device">
+                        <button type="button" data-choice="android" aria-pressed="false">Android</button
+                        ><button type="button" data-choice="iphone" aria-pressed="false">iPhone / iPad</button
+                        ><button type="button" data-choice="web" aria-pressed="false" data-i18n="browser">
+                            Browser
+                        </button>
+                    </div>
+                    <div data-device="android">
+                        <p data-i18n="androidInstall">
+                            Install Element X from Google Play. Then come back to this page.
+                        </p>
+                        <a
+                            class="button primary"
+                            href="https://play.google.com/store/apps/details?id=io.element.android.x"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-i18n="googlePlay"
+                            >Get Element X on Google Play ↗</a
+                        >
+                        <details>
+                            <summary data-i18n="noPlay">No Google Play? Download the APK</summary>
+                            <p data-i18n="apkHelp">
+                                Download and open the APK below. If Android asks, allow this browser to install the app,
+                                then tap Install. You can turn that permission off afterwards. Get future updates from
+                                the same source.
+                            </p>
+                            <a class="text-link" href="/downloads/element-x-android.apk" data-i18n="apkDownload"
+                                >Download Android APK ↓</a
+                            >
+                        </details>
+                    </div>
+                    <div data-device="iphone" hidden>
+                        <p data-i18n="iphoneInstall">
+                            Install Element X from the App Store. Then come back to this page.
+                        </p>
+                        <a
+                            class="button primary"
+                            href="https://apps.apple.com/app/element-x-secure-chat-call/id1631335820"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-i18n="appStore"
+                            >Get Element X on the App Store ↗</a
+                        >
+                    </div>
+                    <div data-device="web" hidden>
+                        <p data-i18n="browserInstall">You can chat in your browser. There is nothing to install.</p>
+                    </div>
+                    <button class="button next" type="button" id="app-next" data-next="3" data-i18n="installed">
+                        I’ve installed it — next →
+                    </button>
+                </section>
+                <section data-step="3" aria-labelledby="signin-title" hidden>
+                    <p class="step-label" data-i18n="step3">STEP 3 OF 4</p>
+                    <h2 id="signin-title" tabindex="-1" data-i18n="signinTitle">Sign in with your account</h2>
+                    <p data-i18n="signinIntro">
+                        Use the username and password you chose. You do not need to create another account in the app.
+                    </p>
+                    <div class="credential">
+                        <span data-i18n="yourLogin">Your sign-in name</span
+                        ><code class="own-id" data-empty="yourUsername">Your own username</code
+                        ><button type="button" class="copy" data-copy="username" data-i18n="copy">Copy</button>
+                    </div>
+                    <div class="credential">
+                        <span data-i18n="provider">Account provider / server</span><code>chat.everyhub.org</code
+                        ><button type="button" class="copy" data-copy="server" data-i18n="copy">Copy</button>
+                    </div>
+                    <div data-device="mobile">
+                        <ol class="instructions">
+                            <li data-i18n="mobile1">Tap “Open Element X” below. Choose “Sign in manually” if asked.</li>
+                            <li data-i18n="mobile2">
+                                Check the account provider is chat.everyhub.org. If not, tap “Change account provider”
+                                and enter it.
+                            </li>
+                            <li data-i18n="mobile3">
+                                Enter your own username and the password you chose in step 1. Tap “Sign in”.
+                            </li>
+                        </ol>
+                        <a
+                            class="button primary"
+                            href="https://mobile.element.io/element/?account_provider=chat.everyhub.org"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-i18n="openApp"
+                            >Open Element X ↗</a
+                        >
+                    </div>
+                    <div data-device="browser" hidden>
+                        <ol class="instructions">
+                            <li data-i18n="web1">Open web chat below and choose “Sign in”.</li>
+                            <li data-i18n="web2">
+                                Enter your own username and the password you chose in step 1. The server is
+                                chat.everyhub.org.
+                            </li>
+                        </ol>
+                        <a
+                            class="button primary"
+                            href="https://app.chat.everyhub.org/#/login"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            data-i18n="openWeb"
+                            >Open web chat ↗</a
+                        >
+                    </div>
+                    <p class="note" data-i18n="recovery">
+                        If asked to save a recovery key, keep it somewhere safe. It helps you restore encrypted chats on
+                        another device.
+                    </p>
+                    <button class="button next" type="button" data-next="4" data-i18n="signedIn">
+                        I’m signed in — next →
+                    </button>
+                </section>
+                <section data-step="4" aria-labelledby="chat-title" hidden>
+                    <p class="step-label" data-i18n="step4">STEP 4 OF 4</p>
+                    <h2 id="chat-title" tabindex="-1" data-i18n="chatTitle">Say hello</h2>
+                    <p data-i18n="chatIntro">
+                        In Element X or web chat, start a new conversation. Search for Josephus using this address:
+                    </p>
+                    <div class="credential">
+                        <span data-i18n="contact">Josephus’s contact — not your sign-in name</span
+                        ><code>@josephus:chat.everyhub.org</code
+                        ><button type="button" class="copy" data-copy="host" data-i18n="copy">Copy</button>
+                    </div>
+                    <p data-i18n="hello">Send a short “Hi!” so Josephus knows you’ve joined.</p>
+                    <a
+                        class="button primary"
+                        href="https://app.chat.everyhub.org/#/home"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-i18n="openWeb"
+                        >Open web chat ↗</a
+                    >
+                    <p class="note" data-i18n="later">
+                        That’s enough to get started. Translation and voice-message help can wait until you’re
+                        comfortable.
+                    </p>
+                    <a class="text-link" href="/guide.html" data-i18n="languageGuide"
+                        >Later: translation & voice-message guide →</a
+                    >
+                </section>
+                <div class="back-row">
+                    <button class="text-button" id="back" type="button" hidden data-i18n="back">← Back</button
+                    ><span id="copy-status" role="status" aria-live="polite"></span>
+                </div>
+            </div>
+            <details class="help">
+                <summary data-i18n="stuck">Stuck? Start here</summary>
+                <h3 data-i18n="tokenQuestion">“Enter a registration token”?</h3>
+                <p data-i18n="tokenAnswer">
+                    Come back to the personal invitation link Josephus sent you and create your account here first. The
+                    code is included in that link; it is not sent by email. After creating your account, choose Sign in
+                    in the app.
+                </p>
+                <h3 data-i18n="usedQuestion">Invitation already used or expired?</h3>
+                <p data-i18n="usedAnswer">
+                    If you already created an account, choose “I already have my own account” above and sign in.
+                    Otherwise ask Josephus for a new personal invitation link.
+                </p>
+                <h3 data-i18n="loginQuestion">Which account should I use?</h3>
+                <p data-i18n="loginAnswer">
+                    Your own username and password. Josephus’s address is only a contact for starting a conversation.
+                    This account is separate from your Telegram account.
+                </p>
+            </details>
+            <details class="about">
+                <summary data-i18n="why">Why Everyhub Chat?</summary>
+                <p data-i18n="whyText">
+                    Josephus runs this chat on a server he rents from Hetzner, so we control our chat service and can
+                    add our own features. It uses open-source Matrix and Element.
+                </p>
+                <p data-i18n="privacy">
+                    Use encrypted conversations. People in a chat keep their own copies. If everyone agrees to invite
+                    the translation assistant, it can read that room to translate or transcribe messages on our server.
+                    Mobile notifications may still use Apple or Google services.
+                </p>
+                <a
+                    class="text-link"
+                    href="https://github.com/gwangjinkim/element-web/tree/everyhub-language-tools/everyhub"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="source"
+                    >Our source code — fork or improve it under its licences ↗</a
+                >
+            </details>
+            <noscript
+                ><p>
+                    This guided setup needs JavaScript. Enable it in your browser, or ask Josephus to help you create
+                    your own account. Never use Josephus’s login.
+                </p></noscript
+            >
+        </main>
+        <footer>
+            <span>everyhub / chat</span
+            ><a href="https://app.chat.everyhub.org/#/login" data-i18n="returning">Already joined? Sign in ↗</a>
+        </footer>
+    </body>
+</html>
