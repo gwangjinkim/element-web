@@ -28,10 +28,34 @@ export function isLanguage(value: string): value is Language {
 export class Preferences {
     private rooms: Record<string, Record<string, Preference>>;
     private readonly file: string;
+    private readonly mutedFile: string;
+    private mutedRooms: Record<string, boolean>;
+    private readonly generations = new Map<string, number>();
 
     public constructor(file: string) {
         this.file = file;
+        this.mutedFile = file + ".muted";
         this.rooms = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, "utf8")) : {};
+        this.mutedRooms = fs.existsSync(this.mutedFile) ? JSON.parse(fs.readFileSync(this.mutedFile, "utf8")) : {};
+    }
+
+    public isMuted(room: string): boolean {
+        return this.mutedRooms[room] === true;
+    }
+
+    /** Invalidate queued work and results started before a room was switched off. */
+    public generation(room: string): number {
+        return this.generations.get(room) ?? 0;
+    }
+
+    public setMuted(room: string, muted: boolean): void {
+        if (this.isMuted(room) === muted) return;
+        if (muted) this.mutedRooms[room] = true;
+        else delete this.mutedRooms[room];
+        const temporary = this.mutedFile + ".tmp";
+        fs.writeFileSync(temporary, JSON.stringify(this.mutedRooms), { mode: 0o600 });
+        fs.renameSync(temporary, this.mutedFile);
+        this.generations.set(room, this.generation(room) + 1);
     }
 
     public get(room: string, user: string): Preference | undefined {
@@ -56,6 +80,7 @@ export class Preferences {
 
     public forgetRoom(room: string): void {
         delete this.rooms[room];
+        this.setMuted(room, false);
         this.save();
     }
 

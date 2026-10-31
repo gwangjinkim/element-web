@@ -49,6 +49,7 @@ export function messageBody(event: ChatEvent): string {
 /** Commands work in Element Web, Element X, and other Matrix clients. */
 export const help = [
     "Everyhub language assistant",
+    "!bot off / !bot on — pause/resume all translations and transcripts for everyone in this room",
     "!language en — choose your writing/reading language and enable automatic translation in this room",
     "!learn on / !learn off — include original text with translations into your language",
     "!auto on / !auto off — receive automatic translations in this room",
@@ -78,8 +79,35 @@ export class Assistant {
         const words = body.split(/\s+/);
         const command = words[0];
         const current = this.preferences.get(room, event.sender);
+        const generation = this.preferences.generation(room);
 
+        if (command === "!bot") {
+            if (words.length !== 2 || !["on", "off"].includes(words[1]))
+                return this.reply(room, event, "Use !bot off to silence this room, or !bot on to resume.");
+            this.preferences.setMuted(room, words[1] === "off");
+            return this.reply(
+                room,
+                event,
+                words[1] === "off"
+                    ? "Assistant off for everyone in this room. No translations or transcripts until !bot on. " +
+                          "Language choices are saved."
+                    : "Assistant on for this room. Saved language and transcription choices apply to new messages.",
+            );
+        }
         if (command === "!help") return this.reply(room, event, help);
+        if (command === "!settings") {
+            const status = `Assistant for this room: ${this.preferences.isMuted(room) ? "off (!bot on to resume)" : "on"}\n`;
+            return this.reply(
+                room,
+                event,
+                status +
+                    (current
+                        ? `Language: ${current.language}\nAutomatic: ${current.automatic ? "on" : "off"}\n` +
+                          `Learning: ${current.learning ? "on" : "off"}\nYour media transcripts: ${current.transcription ? "on" : "off"}`
+                        : "No language choices saved for you in this room.\n" + help),
+            );
+        }
+        if (this.preferences.isMuted(room)) return;
         if (command === "!forget") {
             this.preferences.forget(room, event.sender);
             return this.reply(room, event, "Your language choices for this room have been removed.");
@@ -107,36 +135,28 @@ export class Assistant {
             this.preferences.set(room, event.sender, { ...current, [field]: words[1] === "on" });
             return this.reply(room, event, `${command.slice(1)} is ${words[1]} for you in this room.`);
         }
-        if (command === "!settings") {
-            return this.reply(
-                room,
-                event,
-                current
-                    ? `Language: ${current.language}\nAutomatic: ${current.automatic ? "on" : "off"}\n` +
-                          `Learning: ${current.learning ? "on" : "off"}\nYour media transcripts: ${current.transcription ? "on" : "off"}`
-                    : "No language choices saved for you in this room.\n" + help,
-            );
-        }
         if (command === "!translate") {
             const match = body.match(/^!translate\s+([a-z]{2})\s+([a-z]{2})(?:\s+([\s\S]+))?$/);
             if (!match || !isLanguage(match[1]) || !isLanguage(match[2])) return this.reply(room, event, help);
             const source = match[3] ?? messageBody(await this.original(room, event));
+            if (!this.active(room, generation)) return;
             if (!source || source.length > 3000)
                 return this.reply(room, event, "Provide up to 3,000 characters.\n" + help);
             const translated = await this.services.translate(source, match[1], match[2]);
-            return this.reply(room, event, `${match[1]} → ${match[2]}\n${translated}`);
+            return this.reply(room, event, `${match[1]} → ${match[2]}\n${translated}`, generation);
         }
         if (command === "!transcribe") {
             const original = await this.original(room, event);
+            if (!this.active(room, generation)) return;
             if (!this.isMedia(original))
                 return this.reply(room, event, "Reply to a recorded voice or video message with !transcribe.");
-            return this.transcribe(room, original);
+            return this.transcribe(room, original, generation);
         }
         if (body.startsWith("!") || event.content.msgtype === "m.notice") return;
         if (this.isMedia(event)) {
-            if (current?.transcription) await this.transcribe(room, event);
+            if (current?.transcription) await this.transcribe(room, event, generation);
         } else if (current && event.content.msgtype === "m.text") {
-            await this.translateForRoom(room, event, body, current.language);
+            await this.translateForRoom(room, event, body, current.language, generation);
         }
     }
 
@@ -149,14 +169,28 @@ export class Assistant {
         return ["m.audio", "m.video"].includes(event.content.msgtype ?? "");
     }
 
-    private async transcribe(room: string, event: ChatEvent): Promise<void> {
-        const result = await this.services.transcribe(event);
-        await this.reply(room, event, `Transcript (${result.language})\n${result.text}`);
-        if (isLanguage(result.language)) await this.translateForRoom(room, event, result.text, result.language);
+    private active(room: string, generation: number): boolean {
+        return !this.preferences.isMuted(room) && this.preferences.generation(room) === generation;
     }
 
-    private async translateForRoom(room: string, event: ChatEvent, text: string, source: Language): Promise<void> {
+    private async transcribe(room: string, event: ChatEvent, generation: number): Promise<void> {
+        if (!this.active(room, generation)) return;
+        const result = await this.services.transcribe(event);
+        await this.reply(room, event, `Transcript (${result.language})\n${result.text}`, generation);
+        if (isLanguage(result.language))
+            await this.translateForRoom(room, event, result.text, result.language, generation);
+    }
+
+    private async translateForRoom(
+        room: string,
+        event: ChatEvent,
+        text: string,
+        source: Language,
+        generation: number,
+    ): Promise<void> {
+        if (!this.active(room, generation)) return;
         const joined = new Set(await this.services.members(room));
+        if (!this.active(room, generation)) return;
         const targets = new Map<Language, boolean>();
         for (const [user, preference] of this.preferences.entries(room)) {
             if (user === event.sender || !joined.has(user) || !preference.automatic || preference.language === source)
@@ -165,17 +199,24 @@ export class Assistant {
         }
         if (targets.size === 0) return;
         if (text.length > 3000)
-            return this.reply(room, event, "Automatic translation supports up to 3,000 characters per message.");
+            return this.reply(
+                room,
+                event,
+                "Automatic translation supports up to 3,000 characters per message.",
+                generation,
+            );
         for (const [target, learning] of targets) {
+            if (!this.active(room, generation)) return;
             const translated = await this.services.translate(text, source, target);
             const original = learning ? `Original (${source})\n${text}\n\n` : "";
-            await this.reply(room, event, `${original}Translation (${source} → ${target})\n${translated}`);
+            await this.reply(room, event, `${original}Translation (${source} → ${target})\n${translated}`, generation);
         }
     }
 
-    private async reply(room: string, event: ChatEvent, text: string): Promise<void> {
+    private async reply(room: string, event: ChatEvent, text: string, generation?: number): Promise<void> {
         // Matrix events have a size limit. Split long transcripts without dropping any text.
         for (let offset = 0; offset < text.length; offset += 6000) {
+            if (generation !== undefined && !this.active(room, generation)) return;
             await this.services.reply(room, event, text.slice(offset, offset + 6000));
         }
     }

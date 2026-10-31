@@ -13,7 +13,7 @@ import {
     LogService,
     LogLevel,
 } from "matrix-bot-sdk";
-import { Assistant, type ChatEvent } from "./assistant.ts";
+import { Assistant, messageBody, type ChatEvent } from "./assistant.ts";
 import { Preferences } from "./preferences.ts";
 import { Inference } from "./inference.ts";
 import { boundedBody, decryptMedia, localMediaUrl } from "./media.ts";
@@ -72,16 +72,27 @@ client.on("room.message", (room: string, event: ChatEvent) => {
         return;
     seen.add(event.event_id);
     if (seen.size > 2000) seen.delete(seen.values().next().value!);
+    const command = messageBody(event).split(/\s+/, 1)[0];
+    const generation = preferences.generation(room);
+    // Room controls bypass slow inference so off also suppresses an in-flight result.
+    if (command === "!bot") {
+        assistant.handle(room, event).catch(() => console.error("Language assistant room control failed"));
+        return;
+    }
+    if (preferences.isMuted(room) && !["!help", "!settings"].includes(command)) return;
     if (queued >= 20) {
         client.replyNotice(room, event, "The language assistant queue is full. Try again shortly.").catch(() => {});
         return;
     }
     queued++;
     queue = queue
-        .then(() => assistant.handle(room, event))
+        .then(() => {
+            if (preferences.generation(room) === generation) return assistant.handle(room, event);
+        })
         .catch(async (error: unknown) => {
             // Never log message text, attachments, keys, or raw exception payloads.
             console.error("Language assistant request failed", error instanceof Error ? error.name : "Error");
+            if (preferences.isMuted(room) || preferences.generation(room) !== generation) return;
             await client
                 .replyNotice(
                     room,

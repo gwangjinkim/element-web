@@ -30,6 +30,11 @@ People who have left the room are excluded when choosing translation targets.
 
 Additional commands:
 
+- `!bot off` / `!bot on`: silence/resume all translations and transcripts for the whole conversation.
+  Any participant can use this switch. Language choices are preserved, and the switch survives a restart.
+  While off, only `!bot`, `!help`, and `!settings` receive responses; manual translation/transcription is paused too.
+  Work queued before switching off is discarded. A model request already running may finish, but its result is suppressed.
+  Resuming processes new messages only; it does not translate messages sent while off.
 - `!auto off` / `!auto on`: turn automatic translations into your language off/on.
 - `!learn off` / `!learn on`: change learning mode.
 - `!transcribe off` / `!transcribe on`: change automatic transcription of your own recorded voice/video messages.

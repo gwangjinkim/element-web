@@ -10,14 +10,14 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { Assistant, messageBody, type ChatEvent } from "./assistant.ts";
+import { Assistant, messageBody, type ChatEvent, type Services } from "./assistant.ts";
 import { Preferences } from "./preferences.ts";
 
 function event(sender: string, body: string, msgtype = "m.text"): ChatEvent {
     return { event_id: "$test", sender, origin_server_ts: Date.now(), content: { body, msgtype } };
 }
 
-function fixture() {
+function fixture(overrides: Partial<Services> = {}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), "everyhub-test-"));
     const file = path.join(directory, "preferences.json");
     const preferences = new Preferences(file);
@@ -32,6 +32,7 @@ function fixture() {
         },
         translate: async (text, source, target) => `${source}:${target}:${text}`,
         transcribe: async () => ({ text: "Spoken words", language: "en" }),
+        ...overrides,
     });
     return {
         assistant,
@@ -133,4 +134,98 @@ test("removes reply fallbacks without destroying later quoted lines", () => {
         messageBody(event("@a:local", "> <@b:local> Before\n\n!translate ru en\n> keep")),
         "!translate ru en\n> keep",
     );
+});
+
+test("room off persists, silences automatic and manual work, and resumes saved choices only in that room", async () => {
+    let translations = 0;
+    let transcriptions = 0;
+    const f = fixture({
+        translate: async () => {
+            translations++;
+            return "Translated";
+        },
+        transcribe: async () => {
+            transcriptions++;
+            return { text: "Spoken words", language: "en" };
+        },
+    });
+    try {
+        for (const room of ["!room", "!other"]) {
+            await f.assistant.handle(room, event("@a:local", "!language en"));
+            await f.assistant.handle(room, event("@b:local", "!language ru"));
+        }
+        await f.assistant.handle("!room", event("@a:local", "!transcribe on"));
+        await f.assistant.handle("!room", event("@b:local", "!bot off"));
+        assert.match(f.replies.at(-1)!, /off for everyone/);
+        assert.equal(new Preferences(f.file).isMuted("!room"), true);
+        assert.equal(fs.statSync(f.file + ".muted").mode & 0o777, 0o600);
+        f.replies.length = 0;
+        for (const body of ["Hello", "!translate en ru Hello", "!transcribe", "!language de", "!auto on"]) {
+            await f.assistant.handle("!room", event("@a:local", body));
+        }
+        for (const type of ["m.audio", "m.video"]) {
+            await f.assistant.handle("!room", event("@a:local", "Recording", type));
+        }
+        assert.deepEqual(f.replies, []);
+        assert.equal(translations, 0);
+        assert.equal(transcriptions, 0);
+        assert.equal(f.preferences.get("!room", "@a:local")?.language, "en");
+        await f.assistant.handle("!room", event("@a:local", "!settings"));
+        assert.match(f.replies.at(-1)!, /Assistant for this room: off/);
+        await f.assistant.handle("!room", event("@a:local", "!help"));
+        assert.match(f.replies.at(-1)!, /!bot off \/ !bot on/);
+        await f.assistant.handle("!other", event("@a:local", "Other room"));
+        assert.equal(translations, 1);
+        await f.assistant.handle("!room", event("@a:local", "!bot invalid"));
+        assert.equal(f.preferences.isMuted("!room"), true);
+        await f.assistant.handle("!room", event("@a:local", "!bot on"));
+        assert.equal(new Preferences(f.file).isMuted("!room"), false);
+        assert.equal(translations, 1);
+        await f.assistant.handle("!room", event("@a:local", "New message"));
+        assert.equal(translations, 2);
+        await f.assistant.handle("!room", event("@a:local", "Recording", "m.audio"));
+        assert.equal(transcriptions, 1);
+        f.preferences.setMuted("!room", true);
+        f.preferences.forgetRoom("!room");
+        assert.equal(new Preferences(f.file).isMuted("!room"), false);
+    } finally {
+        f.dispose();
+    }
+});
+
+test("suppresses translation and transcript results started before off, even if on follows immediately", async () => {
+    for (const body of ["!translate en ru Hello", "!transcribe"]) {
+        let finish!: (value: string) => void;
+        let started!: () => void;
+        const pending = new Promise<string>((resolve) => {
+            finish = resolve;
+        });
+        const entered = new Promise<void>((resolve) => {
+            started = resolve;
+        });
+        const f = fixture({
+            translate: async () => {
+                started();
+                return pending;
+            },
+            transcribe: async () => {
+                started();
+                return { text: await pending, language: "en" };
+            },
+        });
+        try {
+            const request = event("@a:local", body);
+            request.content["m.relates_to"] = { "m.in_reply_to": { event_id: "$clip" } };
+            const running = f.assistant.handle("!room", request);
+            await entered;
+            await f.assistant.handle("!room", event("@a:local", "!bot off"));
+            await f.assistant.handle("!room", event("@a:local", "!bot on"));
+            f.replies.length = 0;
+            finish("Old result");
+            await running;
+            assert.deepEqual(f.replies, []);
+        } finally {
+            f.dispose();
+        }
+    }
 });
