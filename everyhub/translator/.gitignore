@@ -1,0 +1,9 @@
+node_modules/
+coverage/
+data/
+.env*
+credentials.json
+preferences.json
+speech-credential
+*.log
+!package-lock.json

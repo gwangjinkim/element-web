@@ -1,0 +1,95 @@
+<!doctype html>
+<!-- Copyright 2026 Gwang-Jin Kim. SPDX-License-Identifier: AGPL-3.0-only -->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>Languages & learning — Everyhub Chat</title>
+        <link rel="stylesheet" href="/guide.css" />
+    </head>
+    <body>
+        <header><a href="/">everyhub / chat</a><a href="https://app.chat.everyhub.org">Open chat ↗</a></header>
+        <main>
+            <p class="eyebrow">LANGUAGES & LEARNING</p>
+            <h1>Understand each other.<br />Learn along the way.</h1>
+            <p class="intro">Translate conversations and read recorded messages when you cannot listen.</p>
+            <section>
+                <h2>1. Invite the assistant</h2>
+                <p>
+                    Add <code>@translate:chat.everyhub.org</code> to your conversation. Agree with the other
+                    participants first: the assistant can read this room, and its replies are visible to everyone here.
+                    Processing runs on our server.
+                </p>
+            </section>
+            <section>
+                <h2>2. Each person chooses a language</h2>
+                <p>
+                    In an English/Russian conversation, you send <code>!language en</code> and your friend sends
+                    <code>!language ru</code>. English messages receive Russian translations, and Russian messages
+                    receive English translations.
+                </p>
+                <p>
+                    Language codes: <code>en</code> English · <code>de</code> German · <code>ko</code> Korean ·
+                    <code>uk</code> Ukrainian · <code>ru</code> Russian · <code>pl</code> Polish ·
+                    <code>el</code> Greek.
+                </p>
+            </section>
+            <section>
+                <h2>3. Turn on learning mode</h2>
+                <p>
+                    Send <code>!learn on</code> to include both the original and the translation in replies into your
+                    language. Send <code>!learn off</code> for translation-only replies. Original messages remain in the
+                    conversation in either mode.
+                </p>
+                <div class="example">
+                    <small>Original (en)</small>
+                    <p>Good morning, my friend.</p>
+                    <small>Translation (en → ru)</small>
+                    <p>Доброе утро, мой друг.</p>
+                </div>
+            </section>
+            <section>
+                <h2>4. Read voice and video messages</h2>
+                <p>
+                    Send <code>!transcribe on</code> to automatically transcribe recordings you upload. Your friend can
+                    enable it for their recordings too. Or reply to a voice/video message with
+                    <code>!transcribe</code> for a one-time transcript.
+                </p>
+                <p>
+                    Audio language is detected automatically. Transcripts also receive translations for participants who
+                    selected another supported language. Recordings must be under 20 MiB and 10 minutes. Live calls are
+                    not recorded or transcribed.
+                </p>
+            </section>
+            <section>
+                <h2>Your controls</h2>
+                <dl>
+                    <dt><code>!settings</code></dt>
+                    <dd>See your choices for this conversation.</dd>
+                    <dt><code>!auto off</code> / <code>!auto on</code></dt>
+                    <dd>Stop or enable automatic translations into your language.</dd>
+                    <dt><code>!transcribe off</code></dt>
+                    <dd>Stop automatic transcripts of your own recordings.</dd>
+                    <dt><code>!forget</code></dt>
+                    <dd>Remove your saved preferences for this conversation.</dd>
+                    <dt><code>!translate en ru Hello</code></dt>
+                    <dd>Translate once. You can also reply to text with <code>!translate ru en</code>.</dd>
+                    <dt><code>!help</code></dt>
+                    <dd>Show all commands in chat.</dd>
+                </dl>
+            </section>
+            <p class="note">
+                Settings belong to each participant and each conversation. The same commands work in the web app,
+                Android, and iPhone. Translations and transcripts can make mistakes; check important details. Automatic
+                text translation supports up to 3,000 characters per message. Longer transcripts remain readable. If
+                several people share a target language, learning mode includes the original when any of them enables it.
+            </p>
+            <p>
+                <a href="https://github.com/gwangjinkim/element-web/tree/everyhub-language-tools/everyhub"
+                    >Source code & technical details ↗</a
+                >
+            </p>
+        </main>
+        <footer><a href="/">Back to installation & invitations</a></footer>
+    </body>
+</html>

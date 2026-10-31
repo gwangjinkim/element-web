@@ -1,0 +1,26 @@
+{
+    "name": "everyhub-private-translator",
+    "private": true,
+    "version": "1.0.0",
+    "dependencies": {
+        "matrix-bot-sdk": "0.8.0"
+    },
+    "overrides": {
+        "request": "npm:@cypress/request@4.0.1",
+        "tough-cookie": "4.1.4",
+        "html-to-text": "10.0.1"
+    },
+    "type": "module",
+    "scripts": {
+        "test": "node --test src/*.test.ts",
+        "check": "tsc --noEmit --strict --target ES2022 --module NodeNext --moduleResolution NodeNext --allowImportingTsExtensions --skipLibCheck src/*.ts",
+        "coverage": "node --test --experimental-test-coverage src/*.test.ts"
+    },
+    "engines": {
+        "node": ">=24"
+    },
+    "devDependencies": {
+        "@types/node": "^24.19.2",
+        "typescript": "^5.9.3"
+    }
+}
