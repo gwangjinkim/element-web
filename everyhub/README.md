@@ -8,6 +8,21 @@ There is no custom settings dialog in the client yet: the first version uses cha
 
 ## Using it
 
+### Finding the assistant and enabling calls
+
+The assistant already has its own account: `@translate:chat.everyhub.org` (including the leading `@`).
+Synapse's default user directory only finds people sharing a room or visible in public rooms.
+For this private deployment, the owner has approved `user_directory.search_all_users: true` with
+`exclude_remote_users: true`, allowing signed-in users to find local accounts including the assistant.
+This is a directory privacy choice, not a requirement for inviting an exact Matrix ID.
+
+Calls also require `experimental_features.msc4143_enabled: true` alongside the existing `matrix_rtc.transports`.
+Without that flag, the authenticated `/_matrix/client/unstable/org.matrix.msc4143/rtc/transports` endpoint returns
+404 even when the LiveKit backend and `.well-known` advertisement are configured. Check this endpoint as well as
+the actual media connection; successful token issuance alone does not establish a working video call.
+
+### Inviting the assistant
+
 Invite `@translate:chat.everyhub.org` to the conversation, with the participants' agreement.
 It becomes a recipient of the encrypted room. It can read messages in that room.
 Its replies are visible to **everyone in that room**, rather than privately replacing one person's timeline.
