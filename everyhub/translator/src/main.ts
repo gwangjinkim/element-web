@@ -13,7 +13,7 @@ import {
     LogService,
     LogLevel,
 } from "matrix-bot-sdk";
-import { Assistant, messageBody, type ChatEvent } from "./assistant.ts";
+import { Assistant, isLocalCommand, messageBody, type ChatEvent } from "./assistant.ts";
 import { Preferences } from "./preferences.ts";
 import { Inference } from "./inference.ts";
 import { boundedBody, decryptMedia, localMediaUrl } from "./media.ts";
@@ -74,10 +74,12 @@ client.on("room.message", (room: string, event: ChatEvent) => {
         return;
     seen.add(event.event_id);
     if (seen.size > 2000) seen.delete(seen.values().next().value!);
-    const command = messageBody(event).split(/\s+/, 1)[0];
+    const body = messageBody(event);
+    const command = body.split(/\s+/, 1)[0];
     const generation = preferences.generation(room);
     // Room controls bypass slow inference so off also suppresses an in-flight result.
     if (
+        !isLocalCommand(body) &&
         ["!bot", "!auto", "!learn", "!target", "!lang", "!language", "!temperature", "!prompt", "!model"].includes(
             command,
         )

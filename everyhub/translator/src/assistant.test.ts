@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { Assistant, messageBody, type ChatEvent, type Services } from "./assistant.ts";
+import { Assistant, isLocalCommand, messageBody, type ChatEvent, type Services } from "./assistant.ts";
 import { Preferences, parseLanguage } from "./preferences.ts";
 
 function event(sender: string, body: string, msgtype = "m.text"): ChatEvent {
@@ -235,7 +235,7 @@ test("room off persists, silences automatic and manual work, and resumes saved c
 });
 
 test("suppresses translation and transcript results started before off, even if on follows immediately", async () => {
-    for (const body of ["!translate en ru Hello", "!transcribe"]) {
+    for (const body of ["!translate en ru Hello", "!lang auto persian Hello", "!transcribe"]) {
         let finish!: (value: string) => void;
         let started!: () => void;
         const pending = new Promise<string>((resolve) => {
@@ -440,7 +440,7 @@ test("help is a compact HTML table with a short fallback; full rules are optiona
         assert.ok(rendered[0].text.length < 1000);
         assert.match(rendered[0].html!, /<table>/);
         assert.match(rendered[0].html!, /!temperature/);
-        assert.match(rendered[0].text, /!help details/);
+        assert.match(rendered[0].text, /!help detailed/);
         await f.assistant.handle("!room", event("@a:local", "!help details"));
         assert.match(rendered[1].text, /Defaults:/);
         assert.equal(rendered[1].html, undefined);
@@ -481,6 +481,189 @@ test("rate-limited replies retry, but a paused room suppresses a stale translati
             assert.equal(retried, 1);
         } finally {
             blocked.dispose();
+        }
+    } finally {
+        f.dispose();
+    }
+});
+
+test("one-time lang accepts names/codes and auto, preserves multiline text, and leaves all preferences untouched", async () => {
+    const calls: { text: string; source: string; target: string; temperature?: number }[] = [];
+    const f = fixture({
+        translate: async (text, source, target, settings) => {
+            calls.push({ text, source, target, temperature: settings?.temperature });
+            return { translatedText: "سلام", detectedLanguage: "en", skipped: false };
+        },
+    });
+    try {
+        f.preferences.configure("!room", { target: "de", automatic: false, temperature: 0.2 });
+        f.preferences.set("!room", "@a:local", {
+            language: "en",
+            automatic: true,
+            learning: true,
+            transcription: true,
+        });
+        const before = JSON.stringify({
+            room: f.preferences.room("!room"),
+            user: f.preferences.get("!room", "@a:local"),
+        });
+        const generation = f.preferences.generation("!room");
+        for (const body of [
+            "!lang auto persian Hello.\nHow are you?",
+            "!lang English Persian Hello",
+            "!lang en fa Hello",
+        ])
+            await f.assistant.handle("!room", event("@a:local", body));
+        assert.deepEqual(calls, [
+            { text: "Hello.\nHow are you?", source: "auto", target: "fa", temperature: 0.2 },
+            { text: "Hello", source: "en", target: "fa", temperature: 0.2 },
+            { text: "Hello", source: "en", target: "fa", temperature: 0.2 },
+        ]);
+        assert.equal(f.replies[0], "en → fa\nسلام");
+        assert.equal(
+            JSON.stringify({ room: f.preferences.room("!room"), user: f.preferences.get("!room", "@a:local") }),
+            before,
+        );
+        assert.equal(f.preferences.generation("!room"), generation);
+    } finally {
+        f.dispose();
+    }
+});
+
+test("one-time lang can translate a replied-to text; invalid/missing text never changes settings or translates the command", async () => {
+    const calls: string[] = [];
+    const f = fixture({
+        event: async () => event("@b:local", "Good morning."),
+        translate: async (text) => {
+            calls.push(text);
+            return { translatedText: "صبح بخیر", detectedLanguage: "en", skipped: false };
+        },
+    });
+    try {
+        const reply = event("@a:local", "!lang auto persian");
+        reply.content["m.relates_to"] = { "m.in_reply_to": { event_id: "$original" } };
+        await f.assistant.handle("!room", reply);
+        assert.deepEqual(calls, ["Good morning."]);
+        for (const body of [
+            "!lang auto persian",
+            "!lang invalid persian Hello",
+            "!lang en invalid Hello",
+            "!lang en fa " + "x".repeat(3001),
+        ])
+            await f.assistant.handle("!room", event("@a:local", body));
+        assert.equal(calls.length, 1);
+        assert.match(f.replies.at(-1)!, /3,000/);
+        assert.equal(f.preferences.get("!room", "@a:local"), undefined);
+        assert.equal(f.preferences.room("!room").target, undefined);
+        f.replies.length = 0;
+        await f.assistant.handle("!room", event("@a:local", "!lang persian fa سلام"));
+        assert.deepEqual(f.replies, []);
+        f.preferences.setMuted("!room", true);
+        await f.assistant.handle("!room", event("@a:local", "!lang auto fa Hello"));
+        assert.equal(calls.length, 1);
+        assert.deepEqual(f.replies, []);
+    } finally {
+        f.dispose();
+    }
+});
+
+test("one-time language commands are queued while single-language preference commands retain their meaning", async () => {
+    for (const body of ["!lang auto persian Hello", "!lang en fa Hello", "!lang en invalid", "!language en fa Hello"])
+        assert.equal(isLocalCommand(body), true);
+    for (const body of ["!lang auto", "!lang english", "!language en", "!prompt add Translate to Persian"])
+        assert.equal(isLocalCommand(body), false);
+    const f = fixture();
+    try {
+        await f.assistant.handle("!room", event("@a:local", "!lang english"));
+        assert.equal(f.preferences.get("!room", "@a:local")?.language, "en");
+        await f.assistant.handle("!room", event("@a:local", "!lang auto"));
+        assert.equal(f.preferences.get("!room", "@a:local")?.language, "auto");
+    } finally {
+        f.dispose();
+    }
+});
+
+test("local target and processing controls translate only appended text without saving options", async () => {
+    const calls: { text: string; source: string; target: string; temperature: number }[] = [];
+    const f = fixture({
+        translate: async (text, source, target, settings) => {
+            calls.push({ text, source, target, temperature: settings!.temperature });
+            return { translatedText: "Translated", detectedLanguage: "en", skipped: false };
+        },
+    });
+    try {
+        f.preferences.configure("!room", { target: "de", automatic: false, learning: false, temperature: 0.1 });
+        const before = JSON.stringify(f.preferences.room("!room"));
+        const generation = f.preferences.generation("!room");
+        for (const command of [
+            "!target Persian Hello.\nHow are you?",
+            "!target fa Hello",
+            "!learn on Hello",
+            "!learn off Hello",
+            "!auto on Hello",
+            "!bot on Hello",
+            "!temperature 0.2 Hello",
+            "!temperature reset Hello",
+        ]) {
+            assert.equal(isLocalCommand(command), true);
+            await f.assistant.handle("!room", event("@a:local", command));
+            if (command.startsWith("!learn on")) assert.match(f.replies.at(-1)!, /Original \(en\)\nHello/);
+            else assert.doesNotMatch(f.replies.at(-1)!, /Original \(/);
+        }
+        assert.equal(calls.length, 8);
+        assert.deepEqual(calls[0], { text: "Hello.\nHow are you?", source: "auto", target: "fa", temperature: 0.1 });
+        assert.equal(calls[6].temperature, 0.2);
+        assert.equal(calls[7].temperature, 0);
+        for (const command of [
+            "!auto off Hello",
+            "!bot off Hello",
+            "!target invalid Hello",
+            "!auto invalid Hello",
+            "!learn invalid Hello",
+            "!bot invalid Hello",
+            "!temperature 2 Hello",
+            "!temperature NaN Hello",
+            "!target fa " + "x".repeat(3001),
+        ])
+            await f.assistant.handle("!room", event("@a:local", command));
+        assert.equal(calls.length, 8);
+        assert.equal(JSON.stringify(f.preferences.room("!room")), before);
+        assert.equal(f.preferences.generation("!room"), generation);
+        assert.equal(f.preferences.get("!room", "@a:local"), undefined);
+        f.preferences.setMuted("!room", true);
+        for (const command of ["!bot on Hello", "!target fa Hello", "!temperature 0.4 Hello"])
+            await f.assistant.handle("!room", event("@a:local", command));
+        assert.equal(calls.length, 8);
+        assert.equal(f.preferences.isMuted("!room"), true);
+    } finally {
+        f.dispose();
+    }
+});
+
+test("local requests require a target, retain multiword language settings, and appear in both help forms", async () => {
+    const f = fixture();
+    try {
+        await f.assistant.handle("!room", event("@a:local", "!learn on Hello"));
+        assert.match(f.replies.at(-1)!, /Choose a room target/);
+        assert.equal(f.preferences.room("!room").learning, false);
+        const inventory = JSON.parse(fs.readFileSync(new URL("./languages.json", import.meta.url), "utf8"));
+        const multi = inventory.languages.find((l: { name: string }) => l.name.includes(" "));
+        assert.ok(multi);
+        assert.equal(isLocalCommand("!target " + multi.name), false);
+        assert.equal(isLocalCommand("!lang " + multi.name), false);
+        await f.assistant.handle("!room", event("@a:local", "!target " + multi.name));
+        assert.equal(f.preferences.room("!room").target, multi.code);
+        await f.assistant.handle("!room", event("@a:local", "!target " + multi.name + " Hello"));
+        assert.ok(f.replies.at(-1)!.includes("Hello"));
+        await f.assistant.handle("!room", event("@a:local", "!help"));
+        assert.match(f.replies.at(-1)!, /this message only/);
+        assert.match(f.replies.at(-1)!, /!target fa text/);
+        assert.ok(f.replies.at(-1)!.length < 1200);
+        for (const form of ["!help detailed", "!help details"]) {
+            await f.assistant.handle("!room", event("@a:local", form));
+            assert.match(f.replies.at(-1)!, /Local rule:/);
+            assert.match(f.replies.at(-1)!, /!target <target> <text>/);
+            assert.match(f.replies.at(-1)!, /No saved settings change/);
         }
     } finally {
         f.dispose();

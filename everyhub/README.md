@@ -62,6 +62,8 @@ Commands:
 | `!bot off` / `!bot on`                                     | Pause/resume all automatic and manual translations **and transcripts** for the room |
 | `!transcribe on` / `!transcribe off`                       | Opt in/out of automatic transcripts of **your own** voice/video uploads             |
 | Reply with `!transcribe`                                   | One-time transcript of that voice/video message                                     |
+| `!lang auto persian text`                                  | Translate this text once, detecting its source; no saved changes                    |
+| `!target persian text`                                     | Translate this text once using your saved source (auto by default)                  |
 | `!translate auto en text`                                  | One-time translation, with source detection                                         |
 | `!translate ru english text`                               | One-time translation with an explicit source                                        |
 | Reply with `!translate auto en`                            | Translate the replied-to text once                                                  |
@@ -71,7 +73,20 @@ Commands:
 | `!prompt add TEXT` / `!prompt set TEXT` / `!prompt reset`  | Append/replace/reset this room's custom instructions (up to 1,600 characters)       |
 | `!settings`                                                | Show shared room settings and your own source/transcription choices                 |
 | `!forget`                                                  | Remove your own source/transcription choices; shared settings remain                |
-| `!help` / `!help details`                                   | Reminder / full rules                                                                   |
+| `!help` / `!help detailed`                                 | Reminder / full rules                                                               |
+
+Add message text after a translation control to apply it **only to that message**, without saving changes:
+`!target persian Hello`, `!learn on Hello`, `!auto on Hello`, `!bot on Hello`, or
+`!temperature 0.2 Hello`. `!lang <source> <target> <text>` supplies both languages, for example
+`!lang english persian Hello`, `!lang en fa Hello`, or `!lang auto persian Hello` for source detection.
+Reply to text with `!lang auto persian` to translate that message instead. Text may span multiple lines.
+Local target uses your saved source override, defaulting to automatic detection. Local learn includes/omits the
+original. Other local controls use the saved room target; choose one first. Local requests work with room auto off,
+but never bypass the room's silencer. Local `!auto off text` and `!bot off text` suppress that request only.
+Without message text, controls retain their existing persistent behavior; bare bot/auto/learn still toggle.
+`!prompt add/set TEXT` takes instructions as its required argument and saves them; it does not translate those
+instructions. `!transcribe` operates on recordings, not appended text. `!help details` remains an alias for
+`!help detailed`.
 
 Codes and English language names are case-insensitive. The model's full 150-entry inventory, including script
 variants, is in `translator/src/languages.json`; it is taken from the technical report's Appendix C.

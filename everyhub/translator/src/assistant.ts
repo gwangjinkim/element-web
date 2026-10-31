@@ -75,6 +75,15 @@ export function messageBody(event: ChatEvent): string {
     return (event.content.body ?? "").replace(/^(?:>[^\n]*\n)+\n?/, "").trim();
 }
 
+/** Message-scoped commands use the bounded inference queue, rather than the settings bypass. */
+export function isLocalCommand(body: string): boolean {
+    const words = body.trim().split(/\s+/, 3);
+    if (words.length < 3) return false;
+    if (words[0] === "!target" && parseLanguage(body.replace(/^!target\s+/, ""))) return false;
+    if (["!lang", "!language"].includes(words[0]) && parseLanguage(body.replace(/^!\S+\s+/, ""))) return false;
+    return ["!lang", "!language", "!target", "!auto", "!learn", "!bot", "!temperature"].includes(words[0]);
+}
+
 /** Commands work in Element Web, Element X, and other Matrix clients. */
 export const detailedHelp = [
     "Everyhub language assistant",
@@ -84,6 +93,12 @@ export const detailedHelp = [
     "!learn — toggle learning mode; !learn on / !learn off — include/omit the repeated original for this room",
     "!lang auto — detect each message's language (the default)",
     "!lang en / !lang english — override your own source language in this room",
+    "!lang <source> <target> <text> — translate once without saving language changes; auto detects the source",
+    "Example: !lang auto persian Hello. Or reply to text with !lang english persian. Codes and names work: en/english, fa/persian.",
+    "!target <target> <text> — translate only that text using your saved source (auto by default); e.g. !target persian Hello.",
+    "Local rule: append text to !target, !auto on/off, !learn on/off, !bot on/off, or !temperature 0..1/reset to apply that option only to this message. No saved settings change. !lang <source> <target> <text> supplies both languages for one message.",
+    "Local !learn on repeats the original; off omits it. Local !auto off / !bot off produce no translation. Local on never bypasses the room's !bot off. A saved room target is required unless supplied by !target or !lang. Local requests work even when room auto is off.",
+    "Examples: !learn on Hello; !temperature 0.2 Hello. Commands without appended message text retain their normal settings behavior. !prompt add/set TEXT saves instructions, not a message; !transcribe works on recordings, not appended text.",
     "!transcribe on / !transcribe off — automatically transcribe your own voice/video uploads",
     "Reply to a voice/video message with !transcribe for a one-time transcript",
     "!translate auto english text — one-time translation; or reply with !translate ru en",
@@ -116,14 +131,16 @@ const commandRows = [
     ["!lang auto / en / english", "Your source language"],
     ["!transcribe on/off", "Your recordings"],
     ["!transcribe (reply to clip)", "One transcript"],
-    ["!translate auto en text", "One translation"],
+    ["!lang auto fa text", "Once (!translate alias)"],
     ["!model · !settings", "Current setup"],
     ["!temperature 0–1 / reset", "Sampling"],
     ["!prompt [add/set/reset]", "Translation instructions"],
     ["!forget", "Reset your choices"],
-    ["!help details", "Full rules"],
+    ["!target fa text", "One message → fa"],
+    ["!help detailed", "Full rules"],
 ];
-const reminder = "Bare !bot / !auto / !learn = toggle. Room settings are shared; !lang / !transcribe are yours.";
+const reminder =
+    "Bare !bot / !auto / !learn = toggle. Add text to target/auto/learn/bot/temperature = this message only; no saved changes. !lang source target text = once. !prompt add/set saves instructions.";
 /** A brief command reminder, with a plain-text fallback for every Matrix client. */
 export const help =
     "Everyhub · quick reference\n" +
@@ -156,6 +173,10 @@ export class Assistant {
         const current = this.preferences.get(room, event.sender);
         const generation = this.preferences.generation(room);
 
+        if (isLocalCommand(body)) {
+            if (this.preferences.isMuted(room)) return;
+            return this.translateLocal(room, event, body, generation);
+        }
         if (command === "!bot") {
             if (words.length > 2 || (words.length === 2 && !["on", "off"].includes(words[1])))
                 return this.reply(
@@ -175,7 +196,7 @@ export class Assistant {
             );
         }
         if (command === "!help")
-            return words[1] === "details"
+            return ["details", "detailed"].includes(words[1])
                 ? this.reply(room, event, detailedHelp)
                 : this.reply(room, event, help, undefined, helpHtml);
         if (command === "!settings") {
@@ -264,7 +285,12 @@ export class Assistant {
             return this.reply(room, event, "Custom prompt instructions saved for this room only:\n" + instructions);
         }
         if (this.preferences.isMuted(room)) return;
+        if (command === "!translate") {
+            return this.translateOnce(room, event, body, generation);
+        }
         if (command === "!forget") {
+            if (words.length !== 1)
+                return this.reply(room, event, "Use !forget without text to reset your saved personal choices.");
             this.preferences.forget(room, event.sender);
             return this.reply(
                 room,
@@ -335,25 +361,6 @@ export class Assistant {
             });
             return this.reply(room, event, `transcribe is ${words[1]} for your own recordings in this room.`);
         }
-        if (command === "!translate") {
-            const sourceCode = words[1]?.toLowerCase() === "auto" ? "auto" : parseLanguage(words[1] ?? "");
-            const target = parseLanguage(words[2] ?? "");
-            if (!sourceCode || !target) return this.reply(room, event, help);
-            const source = words.length > 3 ? words.slice(3).join(" ") : messageBody(await this.original(room, event));
-            if (!this.active(room, generation)) return;
-            if (!source || source.length > 3000)
-                return this.reply(room, event, "Provide up to 3,000 characters.\n" + help);
-            if (sourceCode === target) return;
-            const result = await this.services.translate(source, sourceCode, target, this.preferences.room(room));
-            if (!result.skipped)
-                await this.reply(
-                    room,
-                    event,
-                    `${result.detectedLanguage ?? sourceCode} → ${target}\n${result.translatedText}`,
-                    generation,
-                );
-            return;
-        }
         if (command === "!transcribe") {
             const original = await this.original(room, event);
             if (!this.active(room, generation)) return;
@@ -367,6 +374,108 @@ export class Assistant {
         } else if (event.content.msgtype === "m.text") {
             await this.translateForRoom(room, event, body, current?.language ?? "auto", generation);
         }
+    }
+
+    private async translateLocal(room: string, event: ChatEvent, body: string, generation: number): Promise<void> {
+        const command = body.split(/\s+/, 1)[0];
+        if (["!lang", "!language"].includes(command)) return this.translateOnce(room, event, body, generation);
+        const match = body.match(/^!\S+\s+(\S+)\s+([\s\S]+)$/)!;
+        const choice = { ...this.preferences.room(room) };
+        let text = match[2];
+        if (command === "!target") {
+            // Longest valid prefix also accepts multiword English language names.
+            const words = body.split(/\s+/).slice(1);
+            let target: Language | undefined;
+            for (let count = words.length - 1; count > 0; count--) {
+                target = parseLanguage(words.slice(0, count).join(" "));
+                if (target) {
+                    text = body.slice([...body.matchAll(/\S+/g)][count + 1].index);
+                    break;
+                }
+            }
+            if (!target)
+                return this.reply(
+                    room,
+                    event,
+                    "Use !target <language> <text>, e.g. !target persian Hello. Nothing was saved.",
+                );
+            choice.target = target;
+        } else if (command === "!temperature") {
+            const value = match[1] === "reset" ? 0 : Number(match[1]);
+            if (!Number.isFinite(value) || value < 0 || value > 1)
+                return this.reply(room, event, "Use !temperature 0..1 <text>. Nothing was saved.");
+            choice.temperature = value;
+        } else {
+            if (!["on", "off"].includes(match[1]))
+                return this.reply(room, event, `Use ${command} on/off <text>. Nothing was saved.`);
+            if (command === "!learn") choice.learning = match[1] === "on";
+            else if (match[1] === "off") return;
+        }
+        if (!choice.target)
+            return this.reply(
+                room,
+                event,
+                "Choose a room target first, or use !target <language> <text> / !lang <source> <target> <text>. Nothing was saved.",
+            );
+        return this.translateText(
+            room,
+            event,
+            text,
+            this.preferences.get(room, event.sender)?.language ?? "auto",
+            choice.target,
+            generation,
+            choice,
+            choice.learning,
+        );
+    }
+
+    private async translateOnce(room: string, event: ChatEvent, body: string, generation: number): Promise<void> {
+        const usage =
+            "Use !lang <source> <target> <text>, e.g. !lang auto persian Hello. " +
+            "Or reply to text with !lang auto persian. This translates once; settings stay unchanged.";
+        const match = body.match(/^!\S+\s+(\S+)\s+(\S+)(?:\s+([\s\S]+))?$/);
+        const sourceCode = match?.[1].toLowerCase() === "auto" ? "auto" : parseLanguage(match?.[1] ?? "");
+        const target = parseLanguage(match?.[2] ?? "");
+        if (!match || !sourceCode || !target) return this.reply(room, event, usage);
+        const replyId = event.content["m.relates_to"]?.["m.in_reply_to"]?.event_id;
+        if (!match[3] && !replyId) return this.reply(room, event, usage);
+        let text = match[3];
+        if (!text) {
+            const original = await this.original(room, event);
+            if (!["m.text", "m.notice"].includes(original.content.msgtype ?? ""))
+                return this.reply(
+                    room,
+                    event,
+                    "Reply to a text message, or include the text after the language names.",
+                );
+            text = messageBody(original);
+        }
+        return this.translateText(room, event, text, sourceCode, target, generation, this.preferences.room(room));
+    }
+
+    private async translateText(
+        room: string,
+        event: ChatEvent,
+        text: string,
+        sourceCode: SourceLanguage,
+        target: Language,
+        generation: number,
+        settings: TranslationSettings,
+        learning = false,
+    ): Promise<void> {
+        if (!this.active(room, generation)) return;
+        if (!text || text.length > 3000)
+            return this.reply(room, event, "Provide 1–3,000 characters. Nothing was saved.");
+        if (sourceCode === target) return;
+        const result = await this.services.translate(text, sourceCode, target, settings);
+        const original = learning ? `Original (${result.detectedLanguage ?? sourceCode})\n${text}\n\n` : "";
+        if (!result.skipped)
+            await this.reply(
+                room,
+                event,
+                `${original}${result.detectedLanguage ?? sourceCode} → ${target}\n${result.translatedText}`,
+                generation,
+            );
     }
 
     private async original(room: string, event: ChatEvent): Promise<ChatEvent> {

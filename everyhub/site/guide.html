@@ -43,6 +43,23 @@
                 </p>
             </section>
             <section>
+                <h2>Translate just one message</h2>
+                <p>
+                    Send <code>!lang auto persian Hello, how are you?</code> to detect the source and translate only
+                    that text into Persian. Or use <code>!lang english persian Hello</code> or
+                    <code>!lang en fa Hello</code>. Reply to text with <code>!lang auto persian</code> to translate it
+                    once.
+                </p>
+                <p>
+                    <code>!target persian Hello</code> uses your saved source language (automatic by default). Adding
+                    text after <code>!learn on/off</code>, <code>!auto on/off</code>, <code>!bot on/off</code>, or
+                    <code>!temperature 0.2</code> also applies that option only to the attached text. No saved settings
+                    change. These use the room target; local off suppresses only that request, and room
+                    <code>!bot off</code> still silences all requests. <code>!prompt add/set</code> saves instructions;
+                    its text is not a message to translate. Use <code>!help detailed</code> for the full rules.
+                </p>
+            </section>
+            <section>
                 <h2>3. Turn on learning mode</h2>
                 <p>
                     Send <code>!learn on</code> to include both the original and the translation in replies for this
