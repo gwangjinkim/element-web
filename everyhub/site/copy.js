@@ -4,6 +4,12 @@ Copyright 2026 Gwang-Jin Kim
 SPDX-License-Identifier: AGPL-3.0-only
 Please see LICENSE in the repository root for full details.
 */
+import { ru } from "./locales/ru.js";
+import { uk } from "./locales/uk.js";
+import { fr } from "./locales/fr.js";
+import { fa } from "./locales/fa.js";
+import { tr } from "./locales/tr.js";
+import { es } from "./locales/es.js";
 /** Short, participant-facing instructions for the invitation wizard. */
 export const copy = {
     en: {
@@ -308,4 +314,10 @@ export const copy = {
         browserNext: "Dalej do logowania →",
         pageTitle: "Dołącz do Everyhub Chat",
     },
+    ru,
+    uk,
+    fr,
+    fa,
+    tr,
+    es,
 };

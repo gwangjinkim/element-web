@@ -54,7 +54,7 @@ test("invitees can create their own account and follow focused mobile/browser in
             return;
         }
         const name = url.pathname === "/" ? "index.html" : url.pathname.slice(1);
-        if (!/^[a-z.-]+$/.test(name)) {
+        if (!/^(?:locales\/)?[a-z.-]+$/.test(name)) {
             response.writeHead(404);
             response.end();
             return;
@@ -165,6 +165,20 @@ test("invitees can create their own account and follow focused mobile/browser in
             await pl.screenshot({ path: path.join(screenshots, "everyhub-join-polish-signin.png"), fullPage: true });
         await pl.locator("#language").selectOption("de");
         assert.ok(await pl.getByRole("heading", { name: "Melde dich mit deinem Konto an" }).isVisible());
+        for (const [locale, title] of [
+            ["ru", "Войдите в свой аккаунт"],
+            ["uk", "Увійдіть у власний обліковий запис"],
+            ["fr", "Connectez-vous à votre compte"],
+            ["fa", "وارد حساب خود شوید"],
+            ["tr", "Kendi hesabınıza giriş yapın"],
+            ["es", "Entra con tu propia cuenta"],
+        ]) {
+            await pl.locator("#language").selectOption(locale);
+            assert.equal(await pl.locator("[data-step='3'] h2").textContent(), title);
+            assert.equal(await pl.evaluate(() => document.documentElement.dir), locale === "fa" ? "rtl" : "ltr");
+            assert.equal(await pl.locator("[data-step='3'] .own-id").textContent(), "@agata_test:chat.everyhub.org");
+            assert.ok(await pl.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+        }
         coverage.push(...(await pl.coverage.stopJSCoverage()));
         await polish.close();
 

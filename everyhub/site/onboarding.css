@@ -147,7 +147,7 @@ p {
 }
 .notice {
     background: #edf3e9;
-    border-left: 3px solid #538567;
+    border-inline-start: 3px solid #538567;
     padding: 12px 15px;
     border-radius: 0 8px 8px 0;
     font-size: 14px;
@@ -308,12 +308,12 @@ button:disabled {
     font-weight: 700;
 }
 .instructions {
-    padding-left: 24px;
+    padding-inline-start: 24px;
     margin: 24px 0;
 }
 .instructions li {
     margin: 14px 0;
-    padding-left: 5px;
+    padding-inline-start: 5px;
 }
 details {
     margin-top: 24px;
@@ -403,4 +403,28 @@ footer > span {
     footer {
         padding: 22px 18px;
     }
+}
+
+/* Keep account identifiers readable inside Persian instructions. */
+.wordmark,
+code,
+.own-id,
+#username,
+#invite {
+    direction: ltr;
+    unicode-bidi: isolate;
+}
+code,
+#username,
+#invite {
+    text-align: left;
+}
+[dir="rtl"] .notice {
+    border-radius: 8px 0 0 8px;
+}
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] .eyebrow,
+[dir="rtl"] .step-label {
+    letter-spacing: normal;
 }

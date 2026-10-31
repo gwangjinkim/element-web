@@ -40,7 +40,7 @@ export function invitationCode(value: string): string | undefined {
 /** Prefer an explicit link choice, then the visitor's language, with English as fallback. */
 export function chooseLocale(value: string | null, browserLanguage: string): Locale {
     const candidate = (value ?? browserLanguage).toLowerCase().split("-")[0];
-    return candidate === "de" || candidate === "pl" ? candidate : "en";
+    return Object.hasOwn(copy, candidate) ? (candidate as Locale) : "en";
 }
 
 /** Device selection hides instructions for other platforms without blocking a manual choice. */
@@ -140,6 +140,7 @@ function start(): void {
     };
     const render = (): void => {
         document.documentElement.lang = locale;
+        document.documentElement.dir = locale === "fa" ? "rtl" : "ltr";
         document.title = text("pageTitle");
         document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((element) => {
             element.textContent = text(element.dataset.i18n as CopyKey);

@@ -21,7 +21,7 @@ export function invitationCode(value) {
 /** Prefer an explicit link choice, then the visitor's language, with English as fallback. */
 export function chooseLocale(value, browserLanguage) {
     const candidate = (value ?? browserLanguage).toLowerCase().split("-")[0];
-    return candidate === "de" || candidate === "pl" ? candidate : "en";
+    return Object.hasOwn(copy, candidate) ? candidate : "en";
 }
 /** Device selection hides instructions for other platforms without blocking a manual choice. */
 export function chooseDevice(value, userAgent, touchPoints = 0) {
@@ -118,6 +118,7 @@ function start() {
     };
     const render = () => {
         document.documentElement.lang = locale;
+        document.documentElement.dir = locale === "fa" ? "rtl" : "ltr";
         document.title = text("pageTitle");
         document.querySelectorAll("[data-i18n]").forEach((element) => {
             element.textContent = text(element.dataset.i18n);

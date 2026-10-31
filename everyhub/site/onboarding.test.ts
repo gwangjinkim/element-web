@@ -28,12 +28,17 @@ test("language/device hints stay focused and every participant language has comp
     assert.equal(chooseLocale(null, "pl-PL"), "pl");
     assert.equal(chooseLocale("de", "en-US"), "de");
     assert.equal(chooseLocale("unknown", "pl-PL"), "en");
+    for (const locale of ["ru", "uk", "fr", "fa", "tr", "es"]) {
+        assert.equal(chooseLocale(locale, "en-US"), locale);
+        assert.equal(chooseLocale(null, locale + "-XX"), locale);
+    }
+    assert.equal(chooseLocale("__proto__", "en-US"), "en");
     assert.equal(chooseDevice("android", "iPhone"), "android");
     assert.equal(chooseDevice(null, "Android 15"), "android");
     assert.equal(chooseDevice(null, "iPhone"), "iphone");
     assert.equal(chooseDevice(null, "Macintosh", 5), "iphone");
     assert.equal(chooseDevice(null, "Macintosh", 0), "web");
-    for (const locale of ["de", "pl"] as const)
+    for (const locale of Object.keys(copy) as (keyof typeof copy)[])
         assert.deepEqual(Object.keys(copy[locale]).sort(), Object.keys(copy.en).sort());
     for (const values of Object.values(copy)) {
         assert.ok(values.signinIntro.length < 180);
