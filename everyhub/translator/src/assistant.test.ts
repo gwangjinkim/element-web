@@ -65,7 +65,7 @@ test("uses one shared target, accepts codes/names, detects unconfigured particip
         await f.assistant.handle("!room", event("@b:local", "!learn on"));
         f.replies.length = 0;
         await f.assistant.handle("!room", event("@b:local", "Привет"));
-        assert.equal(f.replies[0], "Original (ru)\nПривет\n\nTranslation (ru → en)\nauto:en:Привет");
+        assert.equal(f.replies[0], "Original (ru)\nПривет\n\n────────────\n\nTranslation (ru → en)\nauto:en:Привет");
         await f.assistant.handle("!room", event("@a:local", "!lang russian"));
         await f.assistant.handle("!room", event("@a:local", "Привет"));
         assert.match(f.replies.at(-1)!, /ru:en:Привет/);
@@ -665,6 +665,70 @@ test("local requests require a target, retain multiword language settings, and a
             assert.match(f.replies.at(-1)!, /!target <target> <text>/);
             assert.match(f.replies.at(-1)!, /No saved settings change/);
         }
+    } finally {
+        f.dispose();
+    }
+});
+
+test("learning replies separate languages with safe rich blocks and a visible plain-text divider", async () => {
+    const rendered: { text: string; html?: string }[] = [];
+    const f = fixture({
+        reply: async (_room, _event, text, html) => {
+            rendered.push({ text, html });
+        },
+        translate: async () => ({
+            translatedText: "سلام <b>friend</b> & everyone\nSecond line",
+            detectedLanguage: "en",
+            skipped: false,
+        }),
+    });
+    try {
+        f.preferences.configure("!room", { target: "fa", learning: true });
+        const original = "Hello <img src=x> & everyone\nNext line";
+        await f.assistant.handle("!room", event("@a:local", original));
+        assert.equal(rendered.length, 1);
+        assert.match(rendered[0].text, /\n\n────────────\n\nTranslation \(en → fa\)/);
+        assert.match(rendered[0].html!, /<strong>Original \(en\)<\/strong>/);
+        assert.match(
+            rendered[0].html!,
+            /<blockquote><p>Hello &lt;img src=x&gt; &amp; everyone<br>Next line<\/p><\/blockquote><hr>/,
+        );
+        assert.match(rendered[0].html!, /<strong>Translation \(en → fa\)<\/strong>/);
+        assert.match(rendered[0].html!, /سلام &lt;b&gt;friend&lt;\/b&gt; &amp; everyone<br>Second line/);
+        assert.doesNotMatch(rendered[0].html!, /<img|<b>/);
+        rendered.length = 0;
+        await f.assistant.handle("!room", event("@a:local", "!learn on " + original));
+        assert.match(rendered[0].html!, /<blockquote>/);
+        assert.match(rendered[0].text, /Translation \(en → fa\)/);
+        rendered.length = 0;
+        await f.assistant.handle("!room", event("@a:local", "!learn off " + original));
+        assert.equal(rendered[0].html, undefined);
+        assert.doesNotMatch(rendered[0].text, /Original|────────────/);
+    } finally {
+        f.dispose();
+    }
+});
+
+test("long learning replies use plain chunks without duplicating the complete formatted message", async () => {
+    const rendered: { text: string; html?: string }[] = [];
+    const f = fixture({
+        reply: async (_room, _event, text, html) => {
+            rendered.push({ text, html });
+        },
+        translate: async () => ({ translatedText: "y".repeat(4000), detectedLanguage: "en", skipped: false }),
+    });
+    try {
+        f.preferences.configure("!room", { target: "de", learning: true });
+        await f.assistant.handle("!room", event("@a:local", "x".repeat(3000)));
+        assert.equal(rendered.length, 2);
+        assert.ok(rendered.every((r) => r.text.length <= 6000 && r.html === undefined));
+        assert.equal(
+            rendered
+                .map((r) => r.text)
+                .join("")
+                .match(/Translation \(en → de\)/g)!.length,
+            1,
+        );
     } finally {
         f.dispose();
     }

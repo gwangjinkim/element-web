@@ -468,14 +468,10 @@ export class Assistant {
             return this.reply(room, event, "Provide 1–3,000 characters. Nothing was saved.");
         if (sourceCode === target) return;
         const result = await this.services.translate(text, sourceCode, target, settings);
-        const original = learning ? `Original (${result.detectedLanguage ?? sourceCode})\n${text}\n\n` : "";
-        if (!result.skipped)
-            await this.reply(
-                room,
-                event,
-                `${original}${result.detectedLanguage ?? sourceCode} → ${target}\n${result.translatedText}`,
-                generation,
-            );
+        if (result.skipped) return;
+        const detected = result.detectedLanguage ?? sourceCode;
+        if (learning) return this.replyLearning(room, event, text, result.translatedText, detected, target, generation);
+        await this.reply(room, event, `${detected} → ${target}\n${result.translatedText}`, generation);
     }
 
     private async original(room: string, event: ChatEvent): Promise<ChatEvent> {
@@ -524,12 +520,31 @@ export class Assistant {
         const result = await this.services.translate(text, source, target, this.preferences.room(room));
         if (result.skipped) return;
         const detected = result.detectedLanguage ?? source;
-        const original = learning ? `Original (${detected})\n${text}\n\n` : "";
+        if (learning) return this.replyLearning(room, event, text, result.translatedText, detected, target, generation);
+        await this.reply(room, event, `Translation (${detected} → ${target})\n${result.translatedText}`, generation);
+    }
+
+    private async replyLearning(
+        room: string,
+        event: ChatEvent,
+        original: string,
+        translated: string,
+        source: string,
+        target: string,
+        generation: number,
+    ): Promise<void> {
+        // Mobile clients can collapse blank lines; structured blocks keep the two languages distinct.
+        const escape = (text: string): string =>
+            text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\r?\n/g, "<br>");
+        const originalLabel = `Original (${source})`;
+        const translationLabel = `Translation (${source} → ${target})`;
         await this.reply(
             room,
             event,
-            `${original}Translation (${detected} → ${target})\n${result.translatedText}`,
+            `${originalLabel}\n${original}\n\n────────────\n\n${translationLabel}\n${translated}`,
             generation,
+            `<p><strong>${escape(originalLabel)}</strong></p><blockquote><p>${escape(original)}</p></blockquote>` +
+                `<hr><p><strong>${escape(translationLabel)}</strong></p><p>${escape(translated)}</p>`,
         );
     }
 
@@ -545,7 +560,13 @@ export class Assistant {
             for (let attempt = 0; ; attempt++) {
                 if (generation !== undefined && !this.active(room, generation)) return;
                 try {
-                    await this.services.reply(room, event, text.slice(offset, offset + 6000), html);
+                    // A full formatted body must not be repeated beside each chunk of a long plain-text fallback.
+                    await this.services.reply(
+                        room,
+                        event,
+                        text.slice(offset, offset + 6000),
+                        text.length <= 6000 ? html : undefined,
+                    );
                     break;
                 } catch (error) {
                     const rate = error as { errcode?: string; retryAfterMs?: number };

@@ -103,6 +103,10 @@ such as `!prompt add Use friendly, informal language.` Higher temperatures add v
 Any participant can inspect/change these shared room settings. Custom instructions are saved as configuration,
 and no message history is added to the prompt. The default template uses Chinese to match the model authors'
 inference recipe; `!prompt` shows the exact user-prompt template with placeholders. Resuming handles new messages only.
+Learning replies use bold language labels, a quoted original, and a divider before the translation. A visible
+plain-text divider keeps the sections separate in clients that collapse empty lines. Long replies fall back to
+plain-text chunks without repeating the complete formatted message.
+
 Text translation supports 3,000 characters per message. Longer transcripts remain readable, but are not automatically
 translated. Recordings are limited to 20 MiB and 10 minutes. Live calls are not recorded or transcribed.
 Names, numbers, times, and meaning can be mistranslated; this is a language aid rather than an accuracy guarantee.
